@@ -10,9 +10,8 @@
  * SDK 权限模式说明:
  * - default: 标准模式，危险操作需要用户确认
  * - acceptEdits: 自动接受文件编辑操作
- * - bypassPermissions: 绕过所有权限检查（需要 allowDangerouslySkipPermissions）
+ * - bypassPermissions: 绕过所有权限检查
  * - plan: 规划模式，不执行工具，仅规划
- * - delegate: 委托模式，仅限 Teammate 和 Task 工具
  * - dontAsk: 不询问模式，未预批准则拒绝
  */
 
@@ -85,7 +84,7 @@ export interface CanUseToolOptions {
 // ============================================================================
 
 export const DEFAULT_PERMISSION_CONFIG: PermissionConfig = {
-  mode: 'bypassPermissions',
+  mode: 'default',
   enableCustomCanUseTool: false,
   enablePreToolUseHook: false,
   verbosePermissionLog: false,
@@ -100,9 +99,8 @@ export const DEFAULT_PERMISSION_CONFIG: PermissionConfig = {
 export const PERMISSION_MODE_DESCRIPTIONS: Record<PermissionMode, string> = {
   default: '标准模式 - 危险操作需要确认',
   acceptEdits: '自动接受编辑 - 文件编辑自动批准',
-  bypassPermissions: '绕过权限 - 跳过所有权限检查',
+  bypassPermissions: '绕过权限 - 跳过所有权限检查 (需配合 allowedTools)',
   plan: '规划模式 - 不执行工具，仅规划',
-  delegate: '委托模式 - 仅限 Teammate 和 Task 工具',
   dontAsk: '不询问模式 - 未预批准则拒绝',
 };
 

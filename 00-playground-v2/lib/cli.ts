@@ -16,6 +16,18 @@ import {
 import type { PermissionMode } from '@anthropic-ai/claude-agent-sdk';
 
 // ============================================================================
+// 会话操作回调接口
+// ============================================================================
+
+/** 由 playground.ts 注入的会话操作 */
+export interface SessionActions {
+  createNewSession: (cfg: Omit<PlaygroundConfig, 'prompt'>) => void;
+  resumeSession: (sessionId: string, cfg: Omit<PlaygroundConfig, 'prompt'>) => void;
+  closeSession: () => void;
+  getSessionId: () => string | null;
+}
+
+// ============================================================================
 // Readline 工具
 // ============================================================================
 
@@ -65,8 +77,9 @@ export async function promptYesNo(
 // ============================================================================
 
 /** 显示当前配置 */
-export function showCurrentConfig(): void {
+export function showCurrentConfig(sessionId?: string | null): void {
   console.log('\n📋 当前配置:');
+  console.log(`  模型: ${currentConfig.model}`);
   console.log(`  启用工具: ${currentConfig.enableTools ? '是' : '否'}`);
   console.log(`  详细模式: ${currentConfig.verbose ? '是' : '否'}`);
   console.log(`  展开内容块: ${currentConfig.expandContent ? '是' : '否'}`);
@@ -75,6 +88,9 @@ export function showCurrentConfig(): void {
   console.log(`  原始输出模式: ${currentConfig.rawOutput ? '是' : '否'}`);
   console.log(`  工作目录: ${currentConfig.workingDirectory}`);
   console.log(`  API Base URL: ${process.env.ANTHROPIC_BASE_URL || '(默认)'}`);
+  if (sessionId) {
+    console.log(`  💬 会话 ID: ${sessionId}`);
+  }
   showPermissionConfig();
 }
 
@@ -102,6 +118,13 @@ export function showHelp(): void {
   /json     - 切换原始 JSON 显示
   /stream   - 切换流式输出
   /raw      - 切换原始输出模式 (美化 JSON + NDJSON 文件)
+  /model    - 切换模型
+
+💬 会话命令 (V2 Session API):
+  /new              - 创建新会话 (重置多轮上下文)
+  /resume <id>      - 恢复已有会话
+  /session          - 显示当前会话信息
+  /close            - 关闭当前会话
 
 🔐 权限命令:
   /perm       - 打开权限配置菜单
@@ -113,8 +136,9 @@ export function showHelp(): void {
   /quit     - 退出程序
 
 💡 提示:
-  - 直接输入文本发送给 Claude
+  - 直接输入文本发送给 Claude (多轮对话自动保持上下文)
   - 回车使用默认配置快速测试
+  - /new 开始全新对话
   - Ctrl+C 中断当前操作
 `);
 }
@@ -122,6 +146,11 @@ export function showHelp(): void {
 /** 修改配置 */
 export async function modifyConfig(rl: readline.Interface): Promise<void> {
   console.log('\n⚙️  修改配置 (直接回车保持当前值):');
+
+  const newModel = await prompt(rl, '模型', currentConfig.model);
+  if (newModel) {
+    currentConfig.model = newModel;
+  }
 
   currentConfig.enableTools = await promptYesNo(rl, '启用工具?', currentConfig.enableTools);
   currentConfig.verbose = await promptYesNo(rl, '详细模式?', currentConfig.verbose);
@@ -152,7 +181,6 @@ export async function selectPermissionMode(rl: readline.Interface): Promise<void
     'acceptEdits',
     'bypassPermissions',
     'plan',
-    'delegate',
     'dontAsk',
   ];
 
@@ -164,18 +192,13 @@ export async function selectPermissionMode(rl: readline.Interface): Promise<void
 
   console.log('\n  0. 取消');
 
-  const answer = await prompt(rl, '\n选择 (0-6)', '0');
+  const answer = await prompt(rl, '\n选择 (0-5)', '0');
   const choice = parseInt(answer, 10);
 
   if (choice >= 1 && choice <= modes.length) {
     const selectedMode = modes[choice - 1];
     currentConfig.permission.mode = selectedMode;
     console.log(`\n✅ 权限模式已设置为: ${selectedMode}`);
-
-    // 如果选择 bypassPermissions，提示安全警告
-    if (selectedMode === 'bypassPermissions') {
-      console.log('⚠️  注意: bypassPermissions 模式会跳过所有权限检查');
-    }
   } else {
     console.log('已取消');
   }
@@ -303,13 +326,17 @@ export async function modifyPermissionConfig(rl: readline.Interface): Promise<vo
 export type QueryExecutor = (cfg: PlaygroundConfig) => Promise<void>;
 
 /** 主交互循环 */
-export async function interactiveLoop(executeQuery: QueryExecutor): Promise<void> {
+export async function interactiveLoop(
+  executeQuery: QueryExecutor,
+  sessionActions?: SessionActions,
+): Promise<void> {
   const rl = createReadline();
 
-  console.log('🚀 Claude Agent SDK Playground');
+  console.log('🚀 Claude Agent SDK Playground (V2 Session API)');
   console.log('━'.repeat(40));
-  showCurrentConfig();
-  console.log('\n输入 /help 查看帮助，或直接输入提示词开始测试\n');
+  showCurrentConfig(sessionActions?.getSessionId());
+  console.log('\n输入 /help 查看帮助，或直接输入提示词开始测试');
+  console.log('💬 多轮对话自动保持上下文，/new 开始新对话\n');
 
   const promptUser = (): void => {
     rl.question('📝 输入提示词 (或命令): ', async (input) => {
@@ -332,12 +359,15 @@ export async function interactiveLoop(executeQuery: QueryExecutor): Promise<void
 
       // 处理命令
       if (trimmed.startsWith('/')) {
-        const cmd = trimmed.toLowerCase();
+        const parts = trimmed.split(/\s+/);
+        const cmd = parts[0].toLowerCase();
+        const cmdArg = parts.slice(1).join(' ');
 
         switch (cmd) {
           case '/quit':
           case '/exit':
           case '/q':
+            sessionActions?.closeSession();
             console.log('\n👋 再见！');
             rl.close();
             process.exit(0);
@@ -352,7 +382,7 @@ export async function interactiveLoop(executeQuery: QueryExecutor): Promise<void
             break;
 
           case '/show':
-            showCurrentConfig();
+            showCurrentConfig(sessionActions?.getSessionId());
             break;
 
           case '/tools':
@@ -385,6 +415,57 @@ export async function interactiveLoop(executeQuery: QueryExecutor): Promise<void
             console.log(`原始输出模式已${currentConfig.rawOutput ? '开启' : '关闭'}`);
             if (currentConfig.rawOutput) {
               console.log('  提示: 下次查询时将同时输出美化 JSON 到终端，并写入 NDJSON 文件');
+            }
+            break;
+
+          case '/model': {
+            const newModel = cmdArg || await prompt(rl, '输入模型名称 (如 sonnet, opus, haiku)', currentConfig.model);
+            if (newModel) {
+              currentConfig.model = newModel;
+              console.log(`模型已切换为: ${currentConfig.model}`);
+              console.log('  提示: 模型变更将在下次 /new 创建新会话时生效');
+            }
+            break;
+          }
+
+          // V2 会话命令
+          case '/new':
+            if (sessionActions) {
+              sessionActions.createNewSession(currentConfig);
+            } else {
+              console.log('会话管理不可用');
+            }
+            break;
+
+          case '/resume':
+            if (!sessionActions) {
+              console.log('会话管理不可用');
+            } else if (!cmdArg) {
+              console.log('用法: /resume <session_id>');
+            } else {
+              try {
+                sessionActions.resumeSession(cmdArg, currentConfig);
+              } catch (error) {
+                console.error('❌ 恢复会话失败:', error);
+              }
+            }
+            break;
+
+          case '/session':
+            if (sessionActions) {
+              const sid = sessionActions.getSessionId();
+              if (sid) {
+                console.log(`\n💬 当前会话 ID: ${sid}`);
+                console.log('  可使用 /resume 命令恢复此会话');
+              } else {
+                console.log('\n(尚未建立会话，发送消息后自动创建)');
+              }
+            }
+            break;
+
+          case '/close':
+            if (sessionActions) {
+              sessionActions.closeSession();
             }
             break;
 

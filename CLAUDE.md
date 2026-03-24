@@ -73,6 +73,13 @@ pnpm lint     # Run ESLint
 
 ## Technology Stack
 
+### 00-playground-v2
+- Claude Agent SDK V2 Unstable Session API (`unstable_v2_createSession`, `unstable_v2_resumeSession`, `unstable_v2_prompt`)
+- TypeScript 5 + tsx 运行时
+- 交互式 CLI 多轮对话测试环境
+- 支持会话持久化与恢复
+- 详见 `00-playground-v2/CLAUDE.md`
+
 ### 01-quick-start
 - Next.js 16.1.6 (App Router)
 - React 19.2.3

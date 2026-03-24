@@ -13,6 +13,8 @@ import { type PermissionConfig, DEFAULT_PERMISSION_CONFIG } from './permissions.
 export interface PlaygroundConfig {
   /** 测试的提示词 */
   prompt: string;
+  /** 模型名称 (V2 API 必传) */
+  model: string;
   /** 是否显示详细日志 */
   verbose: boolean;
   /** 是否显示原始 JSON */
@@ -36,6 +38,7 @@ export interface PlaygroundConfig {
 // ============================================================================
 
 export const DEFAULT_CONFIG: Omit<PlaygroundConfig, 'prompt'> = {
+  model: 'sonnet',
   verbose: false,
   showRawJson: false,
   workingDirectory: process.cwd(),
