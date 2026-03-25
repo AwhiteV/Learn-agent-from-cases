@@ -16,17 +16,29 @@ Claude Agent SDK V2 Unstable API 交互式测试环境。
 
 ```
 00-playground-v2/
-├── playground.ts          # 入口 — 会话生命周期管理 + send/stream 执行
+├── playground.ts          # 入口 — executeQuery + main()
 ├── lib/
-│   ├── config.ts          # PlaygroundConfig 接口和默认值 (含 model 字段)
-│   ├── cli.ts             # 交互式 CLI、命令处理、SessionActions 接口
-│   └── permissions.ts     # 权限模式、canUseTool 回调、PreToolUse Hook
+│   ├── config.ts          # 类型定义 (SessionConfig, DisplayConfig, SessionState, AppState) + defaults
+│   ├── cli.ts             # 交互式 CLI、命令处理
+│   ├── session-ops.ts     # 会话生命周期操作 (create/resume/close + buildSessionOptions)
+│   ├── permissions.ts     # 权限模式、canUseTool 回调、PreToolUse Hook
+│   └── session-history.ts # 会话历史持久化 (JSON 文件读写、记录管理)
 ├── utils/
 │   ├── printer.ts         # SDK 消息格式化输出
 │   └── raw-output-writer.ts  # NDJSON 文件写入
 ├── package.json
 └── tsconfig.json
 ```
+
+## 状态管理架构
+
+应用状态通过 `AppState` 统一管理，拆分为三个关注点：
+
+- **`SessionConfig`** — SDK 会话配置 (model, workingDirectory, enableTools, permission)
+- **`DisplayConfig`** — UI 显示设置 (verbose, showRawJson, expandContent, streamText, rawOutput)
+- **`SessionState`** — 会话运行时状态 (session, sessionId, messageCount, firstMessage)
+
+`prompt` 不属于配置，作为 `executeQuery(prompt)` 的参数直接传入。
 
 ## 运行命令
 
@@ -41,6 +53,9 @@ pnpm play:watch    # 文件变更自动重启
 ### 会话管理 (V2)
 - `/new` — 创建新会话 (重置多轮上下文)
 - `/resume <id>` — 恢复已有会话
+- `/history` — 查看会话历史列表
+- `/history <n>` — 恢复第 n 条历史会话
+- `/history clear` — 清空会话历史
 - `/session` — 显示当前会话信息
 - `/close` — 关闭当前会话
 

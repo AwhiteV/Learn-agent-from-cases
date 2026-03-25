@@ -18,135 +18,12 @@ import { resolve } from 'path';
 config({ path: resolve(process.cwd(), '.env.local') });
 config({ path: resolve(process.cwd(), '.env') });
 
-import {
-  unstable_v2_createSession,
-  unstable_v2_resumeSession,
-  type SDKSession,
-  type SDKSessionOptions,
-  type PermissionMode,
-} from '@anthropic-ai/claude-agent-sdk';
-import { type PlaygroundConfig } from './lib/config.js';
-import { interactiveLoop, type SessionActions } from './lib/cli.js';
+import { createAppState, type AppState } from './lib/config.js';
+import { createNewSession } from './lib/session-ops.js';
+import { interactiveLoop } from './lib/cli.js';
 import { printSeparator, printSDKMessage, printRawSDKMessage } from './utils/printer.js';
 import { RawOutputWriter } from './utils/raw-output-writer.js';
-import {
-  createCustomCanUseTool,
-  buildHooksConfig,
-  type PermissionLogEntry,
-} from './lib/permissions.js';
-
-// ============================================================================
-// 会话管理
-// ============================================================================
-
-/** 会话管理器 — 维护当前活跃的 session */
-interface SessionManager {
-  session: SDKSession | null;
-  sessionId: string | null;
-}
-
-/** 全局会话状态 */
-const sessionManager: SessionManager = {
-  session: null,
-  sessionId: null,
-};
-
-// ============================================================================
-// Session 构建
-// ============================================================================
-
-/** 根据配置构建 V2 session options */
-function buildSessionOptions(cfg: PlaygroundConfig): SDKSessionOptions {
-  // 环境变量
-  const envConfig: Record<string, string | undefined> = {
-    ...process.env,
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-  };
-  if (process.env.ANTHROPIC_BASE_URL) {
-    envConfig.ANTHROPIC_BASE_URL = process.env.ANTHROPIC_BASE_URL;
-  }
-
-  // 权限回调
-  const onPermissionLog = (entry: PermissionLogEntry): void => {
-    if (cfg.permission.verbosePermissionLog) {
-      const icon = entry.decision === 'allow' ? '✅' : '❌';
-      console.log(`\n${icon} [权限] ${entry.toolName} - ${entry.decision}`);
-      if (entry.reason) {
-        console.log(`   原因: ${entry.reason}`);
-      }
-    }
-  };
-
-  const canUseTool = cfg.permission.enableCustomCanUseTool
-    ? createCustomCanUseTool(cfg.permission, onPermissionLog)
-    : undefined;
-
-  const hooks = buildHooksConfig(cfg.permission, onPermissionLog);
-
-  const permissionMode: PermissionMode = cfg.permission.mode;
-
-  // 构建允许/禁止工具列表
-  const allowedTools = cfg.enableTools
-    ? cfg.permission.autoAllowedTools
-    : undefined;
-  const disallowedTools = cfg.permission.deniedTools.length > 0
-    ? cfg.permission.deniedTools
-    : undefined;
-
-  return {
-    model: cfg.model,
-    env: envConfig,
-    permissionMode,
-    allowedTools,
-    disallowedTools,
-    ...(canUseTool && { canUseTool }),
-    ...(hooks && { hooks }),
-  };
-}
-
-// ============================================================================
-// 会话生命周期
-// ============================================================================
-
-/** 创建新会话 */
-function createNewSession(cfg: PlaygroundConfig): void {
-  // 关闭旧会话
-  if (sessionManager.session) {
-    sessionManager.session.close();
-  }
-
-  const options = buildSessionOptions(cfg);
-  sessionManager.session = unstable_v2_createSession(options);
-  sessionManager.sessionId = null;
-
-  console.log('🆕 新会话已创建');
-
-  if (cfg.permission.verbosePermissionLog) {
-    console.log(`\n🔐 权限模式: ${cfg.permission.mode}`);
-  }
-}
-
-/** 恢复已有会话 */
-function resumeSession(sessionId: string, cfg: PlaygroundConfig): void {
-  if (sessionManager.session) {
-    sessionManager.session.close();
-  }
-
-  const options = buildSessionOptions(cfg);
-  sessionManager.session = unstable_v2_resumeSession(sessionId, options);
-  sessionManager.sessionId = sessionId;
-
-  console.log(`🔄 已恢复会话: ${sessionId}`);
-}
-
-/** 关闭当前会话 */
-function closeSession(): void {
-  if (sessionManager.session) {
-    sessionManager.session.close();
-    sessionManager.session = null;
-    console.log('👋 会话已关闭');
-  }
-}
+import { addSession, updateSession } from './lib/session-history.js';
 
 // ============================================================================
 // 核心查询执行 — V2 send/stream 模式
@@ -158,44 +35,53 @@ function closeSession(): void {
  * 使用 session.send() 发送消息，session.stream() 接收流式响应。
  * 会话在多轮对话间保持，不需要每次重建。
  */
-async function executeQuery(cfg: PlaygroundConfig): Promise<void> {
+async function executeQuery(state: AppState, prompt: string): Promise<void> {
   // 如果还没有会话，自动创建
-  if (!sessionManager.session) {
-    createNewSession(cfg);
+  if (!state.session.session) {
+    createNewSession(state);
   }
 
-  const session = sessionManager.session!;
+  const session = state.session.session!;
 
   printSeparator('SDK 消息');
 
   // 初始化原始输出写入器（如果启用）
   let rawWriter: RawOutputWriter | null = null;
-  if (cfg.rawOutput) {
+  if (state.display.rawOutput) {
     rawWriter = new RawOutputWriter(process.cwd());
     const filePath = rawWriter.startSession();
     console.log(`📁 原始输出将写入: ${filePath}`);
   }
 
-  // ========================================
   // 🚀 V2: send() 发送消息，stream() 接收响应
-  // ========================================
-  await session.send(cfg.prompt);
+  await session.send(prompt);
+
+  // 记录首条消息（用于历史显示）
+  if (!state.session.firstMessage) {
+    state.session.firstMessage = prompt;
+  }
 
   let messageIndex = 0;
   let textBuffer = '';
 
   for await (const msg of session.stream()) {
-    // 捕获 session_id
-    if (msg.session_id && !sessionManager.sessionId) {
-      sessionManager.sessionId = msg.session_id;
+    // 捕获 session_id，并在首次获取时写入历史
+    if (msg.session_id && !state.session.sessionId) {
+      state.session.sessionId = msg.session_id;
+      addSession(process.cwd(), {
+        sessionId: msg.session_id,
+        createdAt: new Date().toISOString(),
+        model: state.config.model,
+        firstMessage: state.session.firstMessage ?? prompt,
+      });
     }
 
     // 原始模式
-    if (cfg.rawOutput) {
+    if (state.display.rawOutput) {
       printRawSDKMessage(msg, messageIndex);
       rawWriter?.writeMessage(msg);
     } else {
-      printSDKMessage(msg, messageIndex, cfg);
+      printSDKMessage(msg, messageIndex, state.display);
     }
 
     messageIndex++;
@@ -216,15 +102,24 @@ async function executeQuery(cfg: PlaygroundConfig): Promise<void> {
     console.log(`\n📁 原始输出已保存`);
   }
 
+  // 更新会话历史
+  state.session.messageCount++;
+  if (state.session.sessionId) {
+    updateSession(process.cwd(), state.session.sessionId, {
+      lastActiveAt: new Date().toISOString(),
+      messageCount: state.session.messageCount,
+    });
+  }
+
   // 非流式模式下显示完整回复
-  if (textBuffer && !cfg.streamText) {
+  if (textBuffer && !state.display.streamText) {
     printSeparator('最终回复');
     console.log(textBuffer);
   }
 
   // 显示会话信息
-  if (sessionManager.sessionId) {
-    console.log(`\n💬 会话 ID: ${sessionManager.sessionId}`);
+  if (state.session.sessionId) {
+    console.log(`\n💬 会话 ID: ${state.session.sessionId}`);
   }
 
   printSeparator('完成');
@@ -242,15 +137,10 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // 构建会话操作回调
-  const sessionActions: SessionActions = {
-    createNewSession: (cfg) => createNewSession(cfg as PlaygroundConfig),
-    resumeSession: (id, cfg) => resumeSession(id, cfg as PlaygroundConfig),
-    closeSession,
-    getSessionId: () => sessionManager.sessionId,
-  };
+  const state = createAppState();
+  const executor = (prompt: string): Promise<void> => executeQuery(state, prompt);
 
-  await interactiveLoop(executeQuery, sessionActions);
+  await interactiveLoop(executor, state);
 }
 
 main().catch((error) => {

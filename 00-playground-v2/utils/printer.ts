@@ -5,7 +5,7 @@
  */
 
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
-import type { PlaygroundConfig } from '../lib/config.js';
+import type { DisplayConfig } from '../lib/config.js';
 
 // ============================================================================
 // 格式化工具
@@ -43,7 +43,7 @@ export function printRawSDKMessage(msg: SDKMessage, index: number): void {
 }
 
 /** 打印 SDK 消息的详细信息 */
-export function printSDKMessage(msg: SDKMessage, index: number, cfg: PlaygroundConfig): void {
+export function printSDKMessage(msg: SDKMessage, index: number, cfg: DisplayConfig): void {
   const prefix = `[${index.toString().padStart(3, '0')}]`;
 
   switch (msg.type) {

@@ -69,3 +69,6 @@ yarn.lock
 00-playground/output/
 
 ./00-playground/
+
+# Session history
+.session-history.json

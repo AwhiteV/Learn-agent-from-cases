@@ -5,7 +5,7 @@
  */
 
 import * as readline from 'readline';
-import { currentConfig, type PlaygroundConfig } from './config.js';
+import { type AppState } from './config.js';
 import {
   PERMISSION_MODE_DESCRIPTIONS,
   getPermissionLogs,
@@ -13,19 +13,14 @@ import {
   formatPermissionLogEntry,
   getDecisionIcon,
 } from './permissions.js';
+import {
+  formatHistoryTable,
+  getSessionByIndex,
+  clearHistory,
+  listHistory,
+} from './session-history.js';
+import { createNewSession, resumeSession, closeSession } from './session-ops.js';
 import type { PermissionMode } from '@anthropic-ai/claude-agent-sdk';
-
-// ============================================================================
-// 会话操作回调接口
-// ============================================================================
-
-/** 由 playground.ts 注入的会话操作 */
-export interface SessionActions {
-  createNewSession: (cfg: Omit<PlaygroundConfig, 'prompt'>) => void;
-  resumeSession: (sessionId: string, cfg: Omit<PlaygroundConfig, 'prompt'>) => void;
-  closeSession: () => void;
-  getSessionId: () => string | null;
-}
 
 // ============================================================================
 // Readline 工具
@@ -77,26 +72,26 @@ export async function promptYesNo(
 // ============================================================================
 
 /** 显示当前配置 */
-export function showCurrentConfig(sessionId?: string | null): void {
+export function showCurrentConfig(state: AppState): void {
   console.log('\n📋 当前配置:');
-  console.log(`  模型: ${currentConfig.model}`);
-  console.log(`  启用工具: ${currentConfig.enableTools ? '是' : '否'}`);
-  console.log(`  详细模式: ${currentConfig.verbose ? '是' : '否'}`);
-  console.log(`  展开内容块: ${currentConfig.expandContent ? '是' : '否'}`);
-  console.log(`  显示原始 JSON: ${currentConfig.showRawJson ? '是' : '否'}`);
-  console.log(`  流式输出: ${currentConfig.streamText ? '是' : '否'}`);
-  console.log(`  原始输出模式: ${currentConfig.rawOutput ? '是' : '否'}`);
-  console.log(`  工作目录: ${currentConfig.workingDirectory}`);
+  console.log(`  模型: ${state.config.model}`);
+  console.log(`  启用工具: ${state.config.enableTools ? '是' : '否'}`);
+  console.log(`  详细模式: ${state.display.verbose ? '是' : '否'}`);
+  console.log(`  展开内容块: ${state.display.expandContent ? '是' : '否'}`);
+  console.log(`  显示原始 JSON: ${state.display.showRawJson ? '是' : '否'}`);
+  console.log(`  流式输出: ${state.display.streamText ? '是' : '否'}`);
+  console.log(`  原始输出模式: ${state.display.rawOutput ? '是' : '否'}`);
+  console.log(`  工作目录: ${state.config.workingDirectory}`);
   console.log(`  API Base URL: ${process.env.ANTHROPIC_BASE_URL || '(默认)'}`);
-  if (sessionId) {
-    console.log(`  💬 会话 ID: ${sessionId}`);
+  if (state.session.sessionId) {
+    console.log(`  💬 会话 ID: ${state.session.sessionId}`);
   }
-  showPermissionConfig();
+  showPermissionConfig(state);
 }
 
 /** 显示权限配置 */
-export function showPermissionConfig(): void {
-  const perm = currentConfig.permission;
+export function showPermissionConfig(state: AppState): void {
+  const perm = state.config.permission;
   console.log('\n🔐 权限配置:');
   console.log(`  权限模式: ${perm.mode} - ${PERMISSION_MODE_DESCRIPTIONS[perm.mode]}`);
   console.log(`  自定义 canUseTool: ${perm.enableCustomCanUseTool ? '启用' : '禁用'}`);
@@ -123,6 +118,9 @@ export function showHelp(): void {
 💬 会话命令 (V2 Session API):
   /new              - 创建新会话 (重置多轮上下文)
   /resume <id>      - 恢复已有会话
+  /history          - 查看会话历史
+  /history <n>      - 恢复第 n 条历史会话
+  /history clear    - 清空会话历史
   /session          - 显示当前会话信息
   /close            - 关闭当前会话
 
@@ -144,28 +142,28 @@ export function showHelp(): void {
 }
 
 /** 修改配置 */
-export async function modifyConfig(rl: readline.Interface): Promise<void> {
+export async function modifyConfig(rl: readline.Interface, state: AppState): Promise<void> {
   console.log('\n⚙️  修改配置 (直接回车保持当前值):');
 
-  const newModel = await prompt(rl, '模型', currentConfig.model);
+  const newModel = await prompt(rl, '模型', state.config.model);
   if (newModel) {
-    currentConfig.model = newModel;
+    state.config.model = newModel;
   }
 
-  currentConfig.enableTools = await promptYesNo(rl, '启用工具?', currentConfig.enableTools);
-  currentConfig.verbose = await promptYesNo(rl, '详细模式?', currentConfig.verbose);
-  currentConfig.expandContent = await promptYesNo(rl, '展开内容块?', currentConfig.expandContent);
-  currentConfig.showRawJson = await promptYesNo(rl, '显示原始 JSON?', currentConfig.showRawJson);
-  currentConfig.streamText = await promptYesNo(rl, '流式输出?', currentConfig.streamText);
-  currentConfig.rawOutput = await promptYesNo(rl, '原始输出模式?', currentConfig.rawOutput);
+  state.config.enableTools = await promptYesNo(rl, '启用工具?', state.config.enableTools);
+  state.display.verbose = await promptYesNo(rl, '详细模式?', state.display.verbose);
+  state.display.expandContent = await promptYesNo(rl, '展开内容块?', state.display.expandContent);
+  state.display.showRawJson = await promptYesNo(rl, '显示原始 JSON?', state.display.showRawJson);
+  state.display.streamText = await promptYesNo(rl, '流式输出?', state.display.streamText);
+  state.display.rawOutput = await promptYesNo(rl, '原始输出模式?', state.display.rawOutput);
 
-  const newCwd = await prompt(rl, '工作目录', currentConfig.workingDirectory);
+  const newCwd = await prompt(rl, '工作目录', state.config.workingDirectory);
   if (newCwd) {
-    currentConfig.workingDirectory = newCwd;
+    state.config.workingDirectory = newCwd;
   }
 
   console.log('\n✅ 配置已更新');
-  showCurrentConfig();
+  showCurrentConfig(state);
 }
 
 // ============================================================================
@@ -173,7 +171,7 @@ export async function modifyConfig(rl: readline.Interface): Promise<void> {
 // ============================================================================
 
 /** 选择权限模式 */
-export async function selectPermissionMode(rl: readline.Interface): Promise<void> {
+export async function selectPermissionMode(rl: readline.Interface, state: AppState): Promise<void> {
   console.log('\n🔐 选择权限模式:\n');
 
   const modes: PermissionMode[] = [
@@ -185,7 +183,7 @@ export async function selectPermissionMode(rl: readline.Interface): Promise<void
   ];
 
   modes.forEach((mode, index) => {
-    const current = currentConfig.permission.mode === mode ? ' (当前)' : '';
+    const current = state.config.permission.mode === mode ? ' (当前)' : '';
     console.log(`  ${index + 1}. ${mode}${current}`);
     console.log(`     ${PERMISSION_MODE_DESCRIPTIONS[mode]}`);
   });
@@ -197,7 +195,7 @@ export async function selectPermissionMode(rl: readline.Interface): Promise<void
 
   if (choice >= 1 && choice <= modes.length) {
     const selectedMode = modes[choice - 1];
-    currentConfig.permission.mode = selectedMode;
+    state.config.permission.mode = selectedMode;
     console.log(`\n✅ 权限模式已设置为: ${selectedMode}`);
   } else {
     console.log('已取消');
@@ -207,10 +205,11 @@ export async function selectPermissionMode(rl: readline.Interface): Promise<void
 /** 管理工具列表 */
 async function manageToolList(
   rl: readline.Interface,
+  state: AppState,
   listKey: 'autoAllowedTools' | 'deniedTools',
   listName: string
 ): Promise<void> {
-  const list = currentConfig.permission[listKey];
+  const list = state.config.permission[listKey];
   console.log(`\n当前${listName}工具: ${list.length > 0 ? list.join(', ') : '(空)'}`);
   console.log('\n  1. 添加工具');
   console.log('  2. 移除工具');
@@ -238,9 +237,9 @@ async function manageToolList(
     }
   } else if (choice === '3') {
     if (listKey === 'autoAllowedTools') {
-      currentConfig.permission[listKey] = ['Read', 'Glob', 'Grep'];
+      state.config.permission[listKey] = ['Read', 'Glob', 'Grep'];
     } else {
-      currentConfig.permission[listKey] = [];
+      state.config.permission[listKey] = [];
     }
     console.log(`已重置${listName}工具列表`);
   }
@@ -263,7 +262,7 @@ function showPermissionLogs(): void {
 }
 
 /** 权限配置菜单 */
-export async function modifyPermissionConfig(rl: readline.Interface): Promise<void> {
+export async function modifyPermissionConfig(rl: readline.Interface, state: AppState): Promise<void> {
   console.log('\n🔐 权限配置菜单:\n');
   console.log('  1. 选择权限模式');
   console.log('  2. 切换自定义 canUseTool 回调');
@@ -279,34 +278,34 @@ export async function modifyPermissionConfig(rl: readline.Interface): Promise<vo
 
   switch (answer) {
     case '1':
-      await selectPermissionMode(rl);
+      await selectPermissionMode(rl, state);
       break;
     case '2':
-      currentConfig.permission.enableCustomCanUseTool =
-        !currentConfig.permission.enableCustomCanUseTool;
+      state.config.permission.enableCustomCanUseTool =
+        !state.config.permission.enableCustomCanUseTool;
       console.log(
-        `自定义 canUseTool 已${currentConfig.permission.enableCustomCanUseTool ? '启用' : '禁用'}`
+        `自定义 canUseTool 已${state.config.permission.enableCustomCanUseTool ? '启用' : '禁用'}`
       );
       break;
     case '3':
-      currentConfig.permission.enablePreToolUseHook =
-        !currentConfig.permission.enablePreToolUseHook;
+      state.config.permission.enablePreToolUseHook =
+        !state.config.permission.enablePreToolUseHook;
       console.log(
-        `PreToolUse Hook 已${currentConfig.permission.enablePreToolUseHook ? '启用' : '禁用'}`
+        `PreToolUse Hook 已${state.config.permission.enablePreToolUseHook ? '启用' : '禁用'}`
       );
       break;
     case '4':
-      currentConfig.permission.verbosePermissionLog =
-        !currentConfig.permission.verbosePermissionLog;
+      state.config.permission.verbosePermissionLog =
+        !state.config.permission.verbosePermissionLog;
       console.log(
-        `详细权限日志已${currentConfig.permission.verbosePermissionLog ? '启用' : '禁用'}`
+        `详细权限日志已${state.config.permission.verbosePermissionLog ? '启用' : '禁用'}`
       );
       break;
     case '5':
-      await manageToolList(rl, 'autoAllowedTools', '自动允许');
+      await manageToolList(rl, state, 'autoAllowedTools', '自动允许');
       break;
     case '6':
-      await manageToolList(rl, 'deniedTools', '拒绝');
+      await manageToolList(rl, state, 'deniedTools', '拒绝');
       break;
     case '7':
       showPermissionLogs();
@@ -323,18 +322,18 @@ export async function modifyPermissionConfig(rl: readline.Interface): Promise<vo
 // ============================================================================
 
 /** 查询执行器类型 */
-export type QueryExecutor = (cfg: PlaygroundConfig) => Promise<void>;
+export type QueryExecutor = (prompt: string) => Promise<void>;
 
 /** 主交互循环 */
 export async function interactiveLoop(
   executeQuery: QueryExecutor,
-  sessionActions?: SessionActions,
+  state: AppState,
 ): Promise<void> {
   const rl = createReadline();
 
   console.log('🚀 Claude Agent SDK Playground (V2 Session API)');
   console.log('━'.repeat(40));
-  showCurrentConfig(sessionActions?.getSessionId());
+  showCurrentConfig(state);
   console.log('\n输入 /help 查看帮助，或直接输入提示词开始测试');
   console.log('💬 多轮对话自动保持上下文，/new 开始新对话\n');
 
@@ -346,10 +345,7 @@ export async function interactiveLoop(
         // 空输入，使用默认提示词快速测试
         console.log('使用默认提示词: "你好！请用一句话介绍你自己。"');
         try {
-          await executeQuery({
-            ...currentConfig,
-            prompt: '你好！请用一句话介绍你自己。',
-          });
+          await executeQuery('你好！请用一句话介绍你自己。');
         } catch (error) {
           console.error('❌ 执行错误:', error);
         }
@@ -367,7 +363,7 @@ export async function interactiveLoop(
           case '/quit':
           case '/exit':
           case '/q':
-            sessionActions?.closeSession();
+            closeSession(state);
             console.log('\n👋 再见！');
             rl.close();
             process.exit(0);
@@ -378,51 +374,51 @@ export async function interactiveLoop(
             break;
 
           case '/config':
-            await modifyConfig(rl);
+            await modifyConfig(rl, state);
             break;
 
           case '/show':
-            showCurrentConfig(sessionActions?.getSessionId());
+            showCurrentConfig(state);
             break;
 
           case '/tools':
-            currentConfig.enableTools = !currentConfig.enableTools;
-            console.log(`工具已${currentConfig.enableTools ? '启用' : '禁用'}`);
+            state.config.enableTools = !state.config.enableTools;
+            console.log(`工具已${state.config.enableTools ? '启用' : '禁用'}`);
             break;
 
           case '/verbose':
-            currentConfig.verbose = !currentConfig.verbose;
-            console.log(`详细模式已${currentConfig.verbose ? '开启' : '关闭'}`);
+            state.display.verbose = !state.display.verbose;
+            console.log(`详细模式已${state.display.verbose ? '开启' : '关闭'}`);
             break;
 
           case '/expand':
-            currentConfig.expandContent = !currentConfig.expandContent;
-            console.log(`展开内容块已${currentConfig.expandContent ? '开启' : '关闭'}`);
+            state.display.expandContent = !state.display.expandContent;
+            console.log(`展开内容块已${state.display.expandContent ? '开启' : '关闭'}`);
             break;
 
           case '/json':
-            currentConfig.showRawJson = !currentConfig.showRawJson;
-            console.log(`原始 JSON 显示已${currentConfig.showRawJson ? '开启' : '关闭'}`);
+            state.display.showRawJson = !state.display.showRawJson;
+            console.log(`原始 JSON 显示已${state.display.showRawJson ? '开启' : '关闭'}`);
             break;
 
           case '/stream':
-            currentConfig.streamText = !currentConfig.streamText;
-            console.log(`流式输出已${currentConfig.streamText ? '开启' : '关闭'}`);
+            state.display.streamText = !state.display.streamText;
+            console.log(`流式输出已${state.display.streamText ? '开启' : '关闭'}`);
             break;
 
           case '/raw':
-            currentConfig.rawOutput = !currentConfig.rawOutput;
-            console.log(`原始输出模式已${currentConfig.rawOutput ? '开启' : '关闭'}`);
-            if (currentConfig.rawOutput) {
+            state.display.rawOutput = !state.display.rawOutput;
+            console.log(`原始输出模式已${state.display.rawOutput ? '开启' : '关闭'}`);
+            if (state.display.rawOutput) {
               console.log('  提示: 下次查询时将同时输出美化 JSON 到终端，并写入 NDJSON 文件');
             }
             break;
 
           case '/model': {
-            const newModel = cmdArg || await prompt(rl, '输入模型名称 (如 sonnet, opus, haiku)', currentConfig.model);
+            const newModel = cmdArg || await prompt(rl, '输入模型名称 (如 sonnet, opus, haiku)', state.config.model);
             if (newModel) {
-              currentConfig.model = newModel;
-              console.log(`模型已切换为: ${currentConfig.model}`);
+              state.config.model = newModel;
+              console.log(`模型已切换为: ${state.config.model}`);
               console.log('  提示: 模型变更将在下次 /new 创建新会话时生效');
             }
             break;
@@ -430,57 +426,83 @@ export async function interactiveLoop(
 
           // V2 会话命令
           case '/new':
-            if (sessionActions) {
-              sessionActions.createNewSession(currentConfig);
-            } else {
-              console.log('会话管理不可用');
-            }
+            createNewSession(state);
             break;
 
           case '/resume':
-            if (!sessionActions) {
-              console.log('会话管理不可用');
-            } else if (!cmdArg) {
+            if (!cmdArg) {
               console.log('用法: /resume <session_id>');
             } else {
               try {
-                sessionActions.resumeSession(cmdArg, currentConfig);
+                resumeSession(state, cmdArg);
               } catch (error) {
                 console.error('❌ 恢复会话失败:', error);
               }
             }
             break;
 
-          case '/session':
-            if (sessionActions) {
-              const sid = sessionActions.getSessionId();
-              if (sid) {
-                console.log(`\n💬 当前会话 ID: ${sid}`);
-                console.log('  可使用 /resume 命令恢复此会话');
+          case '/history': {
+            // /history clear — 清空历史
+            if (cmdArg === 'clear') {
+              clearHistory(process.cwd());
+              console.log('🗑️  会话历史已清空');
+              break;
+            }
+
+            // /history <n> — 恢复第 n 条
+            const historyIndex = parseInt(cmdArg, 10);
+            if (cmdArg && !isNaN(historyIndex)) {
+              const record = getSessionByIndex(process.cwd(), historyIndex);
+              if (record) {
+                try {
+                  resumeSession(state, record.sessionId);
+                  console.log(`  首条消息: ${record.firstMessage}`);
+                } catch (error) {
+                  console.error('❌ 恢复会话失败:', error);
+                }
               } else {
-                console.log('\n(尚未建立会话，发送消息后自动创建)');
+                console.log(`❌ 未找到第 ${historyIndex} 条历史记录`);
               }
+              break;
+            }
+
+            // /history — 列出历史
+            const records = listHistory(process.cwd());
+            console.log(`\n📋 会话历史 (共 ${records.length} 条):\n`);
+            console.log(formatHistoryTable(records));
+            if (records.length > 0) {
+              console.log('\n💡 输入 /history <序号> 恢复会话，/history clear 清空历史');
             }
             break;
+          }
+
+          case '/session': {
+            const sid = state.session.sessionId;
+            if (sid) {
+              console.log(`\n💬 当前会话 ID: ${sid}`);
+              console.log('  可使用 /resume 命令恢复此会话');
+            } else {
+              console.log('\n(尚未建立会话，发送消息后自动创建)');
+            }
+            break;
+          }
 
           case '/close':
-            if (sessionActions) {
-              sessionActions.closeSession();
-            }
+            closeSession(state);
             break;
 
           // 权限命令
           case '/perm':
           case '/permission':
-            await modifyPermissionConfig(rl);
+            await modifyPermissionConfig(rl, state);
             break;
 
           case '/perm-show':
-            showPermissionConfig();
+            showPermissionConfig(state);
             break;
 
           case '/perm-mode':
-            await selectPermissionMode(rl);
+            await selectPermissionMode(rl, state);
             break;
 
           case '/perm-log':
@@ -488,7 +510,12 @@ export async function interactiveLoop(
             break;
 
           default:
-            console.log(`未知命令: ${cmd}，输入 /help 查看帮助`);
+            // 非内置命令，作为普通消息转发给 Claude（如 /compact 等 SDK 支持的命令）
+            try {
+              await executeQuery(trimmed);
+            } catch (error) {
+              console.error('❌ 执行错误:', error);
+            }
         }
 
         promptUser();
@@ -497,10 +524,7 @@ export async function interactiveLoop(
 
       // 执行查询
       try {
-        await executeQuery({
-          ...currentConfig,
-          prompt: trimmed,
-        });
+        await executeQuery(trimmed);
       } catch (error) {
         console.error('❌ 执行错误:', error);
       }
