@@ -55,6 +55,7 @@ corepack pnpm test
 
 - Any code change in this chapter must keep `05-memory-and-skills/AGENTS.md`
   and `05-memory-and-skills/README.md` in sync.
+- `README.md` 应保持和前面章节一致的教学结构，至少包括“这一章解决什么问题”“这一章的 runnable case 是什么”“动手实践”“这一章对应的 Agent SDK 概念”“与 Proma 的映射”“学完这一章后你应该知道什么”等核心段落。
 - When you add files, update the key files section.
 - When you change commands, storage behavior, or the teaching goal, update both
   docs in the same change.

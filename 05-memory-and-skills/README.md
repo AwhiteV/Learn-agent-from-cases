@@ -39,28 +39,41 @@ corepack pnpm dev
 
 它不是一个“背后藏着很多魔法”的黑盒，而是一个可观察的教学工作台。
 
-## 如何通过操作 memory 与 skill 理解差异
+## 动手实践：你应该点什么 / 输入什么 / 观察什么
 
 推荐你按下面的顺序做：
 
 1. 先添加两条 memory，比如一个 `preference` 和一个 `project`。
+   观察什么：左侧 memory 列表会立即显示新条目，并且这些条目会被持久化到本地 `.data/memory.json`，说明它们不是一次性 UI 状态。
+
 2. 只选择其中一条，发送问题，例如：`How should I learn TypeScript generics?`
+   观察什么：右侧的 `Prompt preview` 和 `Injected memory block` 会清楚显示这次请求到底注入了哪条 memory，而不是把“记忆”藏在黑盒里。
+
 3. 保持问题不变，只切换 skill preset。
+   观察什么：同一个问题会因为 `teacher`、`builder`、`reviewer` 的不同而出现明显不同的回答结构。
+   - `teacher` 更像讲解
+   - `builder` 更像执行计划
+   - `reviewer` 更像风险检查
+
 4. 再保持 skill 不变，改成选择不同的 memory 组合。
-5. 对照右侧的 `Prompt preview` 和 `Injected memory block`。
+   观察什么：回答会更贴近被注入的背景。
+   - 偏好 memory 影响语气或表达方式
+   - 项目 memory 影响例子和落地场景
+   - goal memory 影响建议的方向
 
-你应该观察到：
-
-- skill 改变时，回答的结构会明显变化。
-  - `teacher` 更像讲解
-  - `builder` 更像执行计划
-  - `reviewer` 更像风险检查
-- memory 改变时，回答会更贴近被注入的背景。
-  - 偏好 memory 影响语气或表达方式
-  - 项目 memory 影响例子和落地场景
-  - goal memory 影响建议的方向
+5. 删除一条已经保存的 memory，再重新发送同一个问题。
+   观察什么：这次请求里的 `Injected memory block` 会变短，回答也会少掉对应背景影响，说明 memory 真的是“可存、可删、可控的上下文注入层”。
 
 这就是这一章最重要的教学目标：让学习者看到“为什么同一个问题会因为 memory 和 skill 的不同而产生不同回答”。
+
+## 这一章对应的 Agent SDK 概念
+
+- Context injection：这一章虽然没有引入复杂记忆系统，但它很直观地展示了“回答变化”往往来自输入上下文变化，而不只是模型随机性。
+- Structured memory：这里的 memory 不是无限堆积的聊天历史，而是被结构化保存、按需选择、显式注入的背景信息。
+- Skill preset / system prompt shaping：`teacher`、`builder`、`reviewer` 本质上是稳定影响回答风格和工作方式的系统提示预设。
+- Prompt observability：`Prompt preview` 和 `Injected memory block` 让学习者能直接看到“系统 prompt + 用户问题 + 选中的 memory”是如何共同组成一次请求的。
+
+为什么这一章很重要？因为当 Agent 开始具备 memory 和不同工作模式后，用户最容易困惑的问题就变成“它为什么这么回答”。如果这些上下文和模式不可见，memory 和 skill 就会变成难以调试的黑盒；把它们做成可观察、可切换、可删除的输入层，才更接近可用的 Agent 产品。
 
 ## 这一章与 Proma 中 memory/skills 产品方向的映射
 

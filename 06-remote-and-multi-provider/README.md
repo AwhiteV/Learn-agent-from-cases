@@ -72,14 +72,21 @@ export interface AgentProvider {
 - 但不引入真实 worker、消息队列或远程部署复杂度
 - 它的价值是帮助学习者理解 remote pattern，而不是搭建生产环境
 
-## 学习者应如何切换 provider 并观察差异
+## 动手实践：你应该点什么 / 输入什么 / 观察什么
 
 推荐按这个顺序操作：
 
 1. 保持默认消息不变，先用 `Local Agent` 发送一次。
-2. 观察右侧的 transcript、`Active provider`、`Execution mode` 和 provider notes。
-3. 切换到 `Mock Remote Path`，发送完全相同的消息。
-4. 对照 `Provider Inspector` 中的 `Stable abstraction` 代码块和 `What stays constant` 卡片。
+   观察什么：右侧的 transcript、`Active provider`、`Execution mode` 和 provider notes 会一起更新，你能先看到“本地 provider 是如何被统一接口消费的”。
+
+2. 切换到 `Mock Remote Path`，发送完全相同的消息。
+   观察什么：返回结构仍然是统一的 `ProviderResult`，但 `executionMode` 会变成 `remote`，provider notes 也会明确告诉你这只是 same-process 的 latency-only simulation。
+
+3. 对照 `Provider Inspector` 中的 `Stable abstraction` 代码块和 `What stays constant` 卡片。
+   观察什么：虽然 provider 在变，但请求体仍然是 `{ providerId, message }`，返回结构仍然是 `ProviderResult`，页面渲染逻辑也没有跟着换一套。
+
+4. 再发一个不同类型的问题，比如 `Summarize how this provider setup would scale from a local tutorial to a hosted product.`
+   观察什么：同一个 UI 仍然通过同一个 `/api/chat` 路由工作，但 provider notes 会帮助你区分“这次变化来自 provider 实现差异”，而不是来自前端分支逻辑。
 
 建议重点观察：
 
@@ -91,6 +98,15 @@ export interface AgentProvider {
 - 页面渲染逻辑仍然是一套统一界面
 
 这就是 provider abstraction 最重要的教学结果：调用路径可以替换，产品层的交互面不必跟着碎裂。
+
+## 这一章对应的 Agent SDK 概念
+
+- Provider abstraction / stable contract：这一章把不同执行后端都约束在统一的 `AgentProvider` 接口之下，让上层 UI 和 API 只消费稳定 contract，而不关心底层细节。
+- Unified dispatch boundary：前端始终通过同一个 `POST /api/chat` 入口发消息，服务端再根据 `providerId` 做统一分发，这对应的是产品里常见的“稳定接入层”思路。
+- Execution mode separation：`local` 和 `remote` 在这里不是两套完全不同的前端，而是通过 `ProviderResult.executionMode` 和 provider notes 显式暴露差异。
+- Remote-style simulation：这一章故意用 same-process 的 latency-only simulation 代替真实远程基础设施，帮助学习者先理解“边界和 contract”比“把系统做复杂”更重要。
+
+为什么这一章很重要？因为一旦 Agent 产品开始支持多种 provider 或多种执行环境，最容易失控的地方不是模型本身，而是接口边界。没有统一 contract，前端、API 和工作流会因为 provider 增加而迅速碎裂；有了稳定抽象，底层实现可以替换，上层体验却还能保持一致。
 
 ## 这一章与 Proma 中 remote/provider 方向的映射
 

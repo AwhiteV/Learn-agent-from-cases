@@ -66,6 +66,7 @@ corepack pnpm test
 - Any code change in this chapter must keep
   `06-remote-and-multi-provider/AGENTS.md` and
   `06-remote-and-multi-provider/README.md` in sync.
+- `README.md` 应保持和前面章节一致的教学结构，至少包括“这一章解决什么问题”“动手实践”“这一章对应的 Agent SDK 概念”“与 Proma 的映射”“你学完这一章后应该掌握什么”等核心段落。
 - When you add files, update the key files section.
 - When you change commands, teaching goals, provider behavior, or environment
   variables, update both docs in the same change.
