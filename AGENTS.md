@@ -63,6 +63,7 @@ pnpm lint     # Run ESLint
 
 1. **根目录文件变化** → 必须更新根目录的 `AGENTS.md`
    - 添加/删除配置文件(.gitignore, .npmrc, tsconfig.json 等)
+   - 添加/修改根目录许可证文件（如 `LICENSE`）
    - 修改项目结构(添加新的教程目录等)
    - 更新依赖或工具链
 
