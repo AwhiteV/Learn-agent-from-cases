@@ -6,7 +6,7 @@
 
 ## 背景
 
-当前 `claude-agent-sdk-master` 已经具备按章节递进的教程结构，但整体教学主线仍然更偏向“功能点堆叠”，而不是“适合初学者逐步建立心智模型的学习路径”。现有内容已经覆盖了不少重要能力，但对刚入门的 Agent 开发者来说，仍然缺少三座关键桥梁：
+当前 `Learn-agent-from-cases` 已经具备按章节递进的教程结构，但整体教学主线仍然更偏向“功能点堆叠”，而不是“适合初学者逐步建立心智模型的学习路径”。现有内容已经覆盖了不少重要能力，但对刚入门的 Agent 开发者来说，仍然缺少三座关键桥梁：
 
 1. 官方 Claude Agent SDK 的核心心智模型，尤其是 sessions、内置工具、MCP、权限、hooks、subagents 与扩展能力。
 2. Proma 所体现出的产品化演进路径，也就是从 chat 一步步发展到 agent teams、skills、memory、remote 与 provider abstraction。

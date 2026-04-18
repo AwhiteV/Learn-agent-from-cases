@@ -1,9 +1,9 @@
-# Claude Agent SDK Master
+# Learn-agent-from-cases
 
-[![GitHub stars](https://img.shields.io/github/stars/AwhiteV/claude-agent-sdk-master?style=flat-square&logo=github)](https://github.com/AwhiteV/claude-agent-sdk-master/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/AwhiteV/claude-agent-sdk-master?style=flat-square&logo=github)](https://github.com/AwhiteV/claude-agent-sdk-master/network/members)
-[![License](https://img.shields.io/github/license/AwhiteV/claude-agent-sdk-master?style=flat-square)](https://github.com/AwhiteV/claude-agent-sdk-master/blob/main/LICENSE)
-[![Tutorial Version](https://img.shields.io/badge/version-tutorial--2.0-22c55e?style=flat-square)](https://github.com/AwhiteV/claude-agent-sdk-master)
+[![GitHub stars](https://img.shields.io/github/stars/AwhiteV/Learn-agent-from-cases?style=flat-square&logo=github)](https://github.com/AwhiteV/Learn-agent-from-cases/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/AwhiteV/Learn-agent-from-cases?style=flat-square&logo=github)](https://github.com/AwhiteV/Learn-agent-from-cases/network/members)
+[![License](https://img.shields.io/github/license/AwhiteV/Learn-agent-from-cases?style=flat-square)](https://github.com/AwhiteV/Learn-agent-from-cases/blob/main/LICENSE)
+[![Tutorial Version](https://img.shields.io/badge/version-tutorial--2.0-22c55e?style=flat-square)](https://github.com/AwhiteV/Learn-agent-from-cases)
 [![Claude Code Friendly](https://img.shields.io/badge/Claude%20Code-Friendly-7c3aed?style=flat-square)](https://claude.ai/code)
 [![Agent SDK Tutorial](https://img.shields.io/badge/Agent%20SDK-Tutorial-2563eb?style=flat-square)](https://platform.claude.com/docs/en/agent-sdk/typescript)
 

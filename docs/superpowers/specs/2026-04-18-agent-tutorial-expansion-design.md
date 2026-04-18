@@ -8,7 +8,7 @@
 
 ## Background
 
-`claude-agent-sdk-master` currently provides a useful chapter-by-chapter tutorial path, but the overall teaching arc is still weighted toward feature accumulation instead of beginner learning progression. The current structure explains important capabilities, yet it does not fully bridge three things that new agent developers need:
+`Learn-agent-from-cases` currently provides a useful chapter-by-chapter tutorial path, but the overall teaching arc is still weighted toward feature accumulation instead of beginner learning progression. The current structure explains important capabilities, yet it does not fully bridge three things that new agent developers need:
 
 1. The official Claude Agent SDK mental model, especially sessions, built-in tools, MCP, permissions, hooks, subagents, and extensibility.
 2. The product-oriented evolution visible in Proma, where chat grows into agent teams, skills, memory, remote usage, and provider abstraction.

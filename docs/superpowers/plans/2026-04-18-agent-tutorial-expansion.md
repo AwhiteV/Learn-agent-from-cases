@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Expand `claude-agent-sdk-master` into a clearer beginner-to-advanced Agent SDK tutorial series by rewriting the learning narrative, improving existing chapter docs, and adding two runnable tutorial chapters for memory/skills and remote/multi-provider concepts.
+**Goal:** Expand `Learn-agent-from-cases` into a clearer beginner-to-advanced Agent SDK tutorial series by rewriting the learning narrative, improving existing chapter docs, and adding two runnable tutorial chapters for memory/skills and remote/multi-provider concepts.
 
 **Architecture:** Keep the current numbered tutorial progression and existing Next.js project style, then add two new tutorial projects that are intentionally tutorial-scale rather than production-scale. Treat the root README and chapter READMEs as the teaching surface, and the new `05`/`06` apps as runnable learning labs that visualize the concepts they teach.
 
