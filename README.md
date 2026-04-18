@@ -1,308 +1,193 @@
-<h1 align="center">
-  <strong>Claude Agent SDK Master</strong>
-</h1>
+# Claude Agent SDK Master
 
+一个面向初学者的中文优先教程仓库，帮助你从“第一次接触 Agent SDK”走到“理解面向产品的 Agent 架构”。
 
-<p align="center">
-  <strong>🎓 从零到一掌握 Claude Agent SDK 的渐进式学习教程</strong>
-</p>
+本仓库不是 Proma 的功能镜像，也不是官方文档的翻译版。它更像一条可动手实践的学习路线：你会先看懂 session、tools、MCP 和权限这些基础能力，再逐步理解 teams、memory、skills 与 provider abstraction 为什么会在真实产品里变得重要。
 
-<p align="center">
-  <a href="#-快速开始">快速开始</a> •
-  <a href="#-学习路线">学习路线</a> •
-  <a href="#-项目结构">项目结构</a> •
-  <a href="#-核心理念">核心理念</a> •
-  <a href="#-相关资源">相关资源</a>
-</p>
+## 这套教程适合谁
 
----
+如果你符合下面任意几项，这套教程就是为你准备的：
 
-## 💡 项目定位
+- 你会基础的 JavaScript / TypeScript，最好也了解一点 React。
+- 你用过大模型 API，但还没有真正建立 Agent SDK 的心智模型。
+- 你不想只看概念说明，更想通过“跑起来、改一改、观察结果”来学习。
+- 你想从单个聊天 Agent，逐步走到更接近真实产品的 Agent 应用结构。
+- 你未来想参与类似 Proma 的项目，或者自己做一个 Agent 产品原型。
 
-Claude Agent SDK Master 是一个**渐进式学习教程系列**，作为 [Proma](https://github.com/ErlichLiu/proma-oss.git) 开源项目的前奏和技术基础，旨在：
+如果你已经是非常熟悉 Agent SDK 的重度用户，这个仓库依然可以作为“从教学角度回看架构演进”的参考，但它首先服务的是新手学习路径。
 
-- 🎯 帮助开发者**系统掌握** Claude Agent SDK 的核心概念和高级特性
-- 🔨 通过**实际可运行的项目**理解 Agent 状态管理和用户体验转换
-- 🌟 为开源社区提供高质量的 Agent SDK **中文学习资源**
-- 🚀 培养 **AI 原生应用开发思维**，为 Proma 等项目贡献做准备
+## 你会如何学习这个仓库
 
-### 🤔 为什么需要这个教程？
+推荐把这套教程当成一条连续的学习路线，而不是一次性通读所有目录：
 
-Agent SDK 的潜力远超目前的开发程度。即便 Claude 官方的 Claude Code 和 Cowork，可能也只触及了 SDK 能力的 **10%**。
+1. 先从 `00` 或 `01` 开始，建立 session、workspace、streaming 的第一印象。
+2. 每学一章，先运行，再做 1-2 个小实验，最后回头读该章 README。
+3. 遇到新概念时，先理解“它解决什么问题”，再看“它是怎么实现的”。
+4. 不要急着一口气跳到多 Agent、memory 或 multi-provider；这些能力建立在前面的心智模型上。
+5. 每一章结束后，用自己的话回答两个问题：
+   - 这一章里的 Agent 比上一章多了什么能力？
+   - 这个能力为什么会在真实产品里出现？
 
-Agent SDK 的应用空间巨大，但相比单纯套用 LLM API 以及其他需要进行编排的 Agents 而言，它要求你：
-- 深入理解**状态管理**和**流式响应**机制
-- 重新设计**用户体验**和**交互模式**
-- 掌握更复杂的**嵌套状态**和**工具调用**逻辑
+### 给初学者的实用学习节奏
 
-**本教程的使命：让你真正理解 Agent SDK 的设计，并能优雅地应用这些状态。**
+- 第 1 遍：只跑项目，观察输入、输出、事件流和 UI 变化。
+- 第 2 遍：带着 README 的问题清单再操作一次，确认自己知道“该看哪里”。
+- 第 3 遍：修改 prompt、工具配置或交互流程，验证你对系统行为的理解。
 
----
-## 项目赞助商 MiniMax
+## 00-06 学习地图
 
-本教程推荐采用 MiniMax API 更丝滑更具性价比的完成 Claude Agent SDK 的学习，全面兼容所有功能(订阅 Coding Plan 一样可以生成 Coding Plan api key 来学习和应用到本教程)
+下面这张表把当前教程路线、Agent SDK 概念映射、以及受 Proma 启发的产品能力映射放在一起。`05-memory-and-skills` 和 `06-remote-and-multi-provider` 现在都已经是可运行章节。
 
-![MiniMax](https://img.erlich.fun/personal-blog/uPic/ca1hJO.png)
+| 章节 | 当前状态 | 这一章你会构建什么 | 重点 Agent SDK 概念 | 对应的产品能力映射 |
+| --- | --- | --- | --- | --- |
+| [`00-playground`](./00-playground) | 已存在 | 一个最小 CLI Playground，用最少代码体验 prompt、工具开关与输出模式 | 基础 prompting、工具调用观察、最小运行闭环 | “先看行为再谈架构”的实验场 |
+| [`00-playground-v2`](./00-playground-v2) | 已存在 | 一个更贴近新 Session API 的 CLI 实验台，用来理解 session 的创建、恢复与继续对话 | `unstable_v2_createSession`、`unstable_v2_resumeSession`、`unstable_v2_prompt`、session 生命周期 | 产品原型前的心智模型训练场 |
+| [`01-quick-start`](./01-quick-start) | 已存在 | 第一个可用的 Web Agent，包含会话持久化、工作区绑定与流式界面 | sessions、workspace、streaming UI、context persistence | 从 demo 走向“可使用的聊天工作台” |
+| [`02-tools-and-mcp`](./02-tools-and-mcp) | 已存在 | 一个能真正调用工具并展示工具活动的 Agent 应用 | tools、tool lifecycle、MCP、事件可视化 | 让 Agent 从“会回答”升级到“会行动” |
+| [`03-agent-with-permission`](./03-agent-with-permission) | 已存在 | 一个带审批与拦截流程的 Agent 应用 | permissions、`canUseTool`、`PermissionMode`、`AskUserQuestion` | 面向用户场景的安全控制层 |
+| [`04-agent-teams`](./04-agent-teams) | 已存在 | 一个支持 orchestrator/subagent 协作的多 Agent 示例 | teams、subagents、任务拆解、协作恢复流程 | 从单 Agent 走向多 Agent 编排 |
+| [`05-memory-and-skills`](./05-memory-and-skills) | 已存在 | 一个带可视化 memory 面板与 skill 模式切换的学习型 Agent | memory、skills、上下文注入、能力模块化 | 连续体验、个性化与能力复用 |
+| [`06-remote-and-multi-provider`](./06-remote-and-multi-provider) | 已存在 | 一个展示远程执行形态与 provider abstraction 的产品化案例 | remote execution、provider abstraction、环境分离 | 更接近真实产品的接入层与部署思维 |
 
-MiniMax api 获取和注册地址，还可领取 88 折的优惠！：https://platform.minimaxi.com/subscribe/coding-plan?code=cVcgRF3hAQ&source=link
+## 每一章到底在往前搭什么
 
----
+### 00：先理解 Agent 不是“多轮聊天循环”
 
-## 📖 学习路线
+`00-playground` 和 `00-playground-v2` 都是入门实验场，但定位不同：
 
-本系列采用**渐进式学习路径**，每一章在前一章基础上递进，建议按顺序学习：
+- `00-playground` 适合先快速摸到“Agent 跑起来是什么感觉”。
+- `00-playground-v2` 适合真正建立 session 心智模型，理解为什么 Agent SDK 不只是你手动维护一个 `messages` 数组。
 
-| 章节 | 主题 | 核心内容 | 状态 |
-|------|------|----------|------|
-| **第一章** | 🚀 [快速入门](./01-quick-start) | Workspace、Session、上下文管理、流式对话 | ✅ 已完成 |
-| **第二章** | 🔧 [工具与 MCP](./02-tools-and-mcp) | MCP Tools 集成、Tool Calling、工具活动可视化 | ✅ 已完成 |
-| **第三章** | 🔐 [权限控制](./03-agent-with-permission) | Agent 权限管理、canUseTool 回调、权限 UI | ✅ 已完成 |
-| **第四章** | 🤝 [Agent Teams](./04-agent-teams) | 多 Agent 协作、Orchestrator-Subagent、Auto-Resume | ✅ 已完成 |
+如果你之前只写过普通的 LLM Chat Demo，这两章会帮你跨过第一道门槛。
 
-> **💡 提示**：本教程随 [Proma](https://github.com/ErlichLiu/proma-oss.git) 实际开发进度持续更新。
+### 01：把 Agent 放进一个真正可操作的 Web 应用里
 
----
+`01-quick-start` 不再只是“能对话”，而是让你看到 workspace、session persistence 和 streaming UI 组合起来之后，一个基础 Agent 应用应该长什么样。
 
-## ⚡ 快速开始
+这一章的重点不是页面有多复杂，而是让你感受到：Agent SDK 项目和普通聊天网页在状态管理上完全不是一回事。
 
-### 前置要求
+### 02：给 Agent 接上行动能力
 
-- **Node.js** 18+
-- **pnpm** 包管理器（推荐）
-- **Anthropic API Key（推荐MiniMax API 即可）** [点击获取 minimax api key](https://platform.minimaxi.com/login)（也可以是支持 Anthropic /v1/messages 的其他 api）
+`02-tools-and-mcp` 会把重点从“回答得对不对”转向“它能不能做事，以及你能不能看懂它在做什么”。
 
-### 三步开始学习
+这一章里，MCP 不是一个时髦名词，而是帮助你理解“工具为什么应该被标准化接入”的入口；工具活动可视化也不是装饰，而是学习 Agent 行为最直接的窗口。
+
+### 03：让 Agent 变得可控
+
+当 Agent 开始有行动能力，权限控制就不再是附加项。`03-agent-with-permission` 会帮你理解，为什么 permissions、审批、拒绝、AskUserQuestion 这些流程，本质上是在给 Agent 产品补安全基础设施。
+
+### 04：理解什么时候值得引入多 Agent
+
+`04-agent-teams` 不是为了证明“多 Agent 一定更高级”，而是帮助你判断：
+
+- 哪类任务值得拆给 subagent。
+- orchestrator 应该负责什么，不应该负责什么。
+- 多 Agent 协作带来的复杂度是否真的换来了收益。
+
+### 05-06：迈向产品化思维
+
+`05-memory-and-skills` 与 `06-remote-and-multi-provider` 现在都已经进入本系列的可运行章节：
+
+- `05` 已经开始讨论 memory 与即时上下文的区别，以及 skill 如何变成可复用的能力模块。
+- `06` 会讨论当 Agent 开始接近真实产品时，为什么 remote execution 与 provider abstraction 会逐渐成为必要层。
+
+所以你现在在根目录里看到的是两章都可以继续往下动手实践的学习路线。
+
+## 如何按仓库现状开始学习
+
+如果你今天就要开始，推荐这样走：
+
+1. 想先理解底层心智模型：从 [`00-playground-v2`](./00-playground-v2) 开始。
+2. 想先获得一个可见的 Web 结果：从 [`01-quick-start`](./01-quick-start) 开始。
+3. 想重点学习 Agent 为什么能调用外部能力：继续看 [`02-tools-and-mcp`](./02-tools-and-mcp)。
+4. 想理解安全与用户确认流程：接着看 [`03-agent-with-permission`](./03-agent-with-permission)。
+5. 想理解多 Agent 编排：继续看 [`04-agent-teams`](./04-agent-teams)。
+6. 想进一步理解 memory 与 skill 如何影响回答：再看 [`05-memory-and-skills`](./05-memory-and-skills)。
+7. 想理解 remote-style 执行与 provider abstraction：最后看 [`06-remote-and-multi-provider`](./06-remote-and-multi-provider)。
+
+`00-playground` 可以插在最前面，当作一个更轻量的预热实验场。
+
+## 这套系列和 Proma 的关系
+
+这套教程受到 [Proma](https://github.com/ErlichLiu/proma-oss.git) 的产品思路启发，尤其是这些方向：
+
+- Agent 不只是聊天窗口，而是一种有状态、有工具、有边界的应用形态。
+- 一个能落地的 Agent 产品，往往会逐步需要 tools、permissions、teams、memory、skills 和 provider abstraction。
+- 教学最好从“可运行的小案例”开始，而不是直接把完整产品架构甩给学习者。
+
+但这里有一个边界需要说清楚：
+
+- 本仓库不是 Proma 的 1:1 复刻。
+- 本仓库不会宣称已经覆盖 Proma 的全部能力。
+- 本仓库的目标是帮助你理解“为什么 Proma 一类产品会长成这样”，而不是直接替代 Proma。
+
+你可以把它理解成：Proma 更像产品方向的参照物，而这个仓库是面向学习者的训练路径。
+
+## 快速开始
+
+### 环境准备
+
+- Node.js 18+
+- `pnpm`
+- 可用的 Anthropic 兼容 API Key
+
+### 推荐起步方式
+
+如果你想先跑 Web 版教程：
 
 ```bash
-# 1️⃣ 克隆仓库
-git clone https://github.com/ErlichLiu/claude-agent-sdk-master.git
-cd claude-agent-sdk-master
-
-# 2️⃣ 进入第一章教程
 cd 01-quick-start
-
-# 3️⃣ 安装依赖
 pnpm install
-
-# 4️⃣ 配置 API Key
 cp .env.local.example .env.local
-# 编辑 .env.local，填入你的 ANTHROPIC_API_KEY 以及可选的 ANTHROPIC_BASE_URL
-
-# 5️⃣ 启动开发服务器
 pnpm dev
 ```
 
-访问 [http://localhost:3000](http://localhost:3000)，开始你的 Agent SDK 学习之旅！🎉
-
-### 🎮 从 00-Playground 开始（推荐）
-
-如果你想**快速体验** Agent SDK 的核心功能，推荐先从 00-Playground 开始：
+如果你想先跑 CLI 实验场：
 
 ```bash
-# 进入 00-playground 目录
-cd 00-playground
-
-# 安装依赖
+cd 00-playground-v2
 pnpm install
-
-# 配置 API Key
 cp .env.example .env.local
-# 编辑 .env.local，填入你的 ANTHROPIC_API_KEY
-
-# 启动交互式测试
 pnpm play
 ```
 
-**Playground 的优势：**
-- 📝 **核心代码精简**：`playground.ts` 只有 ~120 行，专注于 SDK 调用
-- ⚡ **即时反馈**：修改代码后立即运行查看效果
-- 🔧 **交互式配置**：通过命令动态切换工具、输出模式等
-- 🎯 **零 UI 干扰**：纯命令行，专注理解 SDK 机制
+每个章节自己的 README 会继续说明该章的环境变量、启动方式和建议实验步骤。
 
-适合想要**快速修改代码、理解 SDK 行为**的开发者。详见 [Playground README](./00-playground/README.md)。
+## 仓库结构
 
----
+当前磁盘上已经存在的教程目录如下：
 
-## 📂 项目结构
-
-```
-claude-agent-sdk-master/
-│
-├── 00-playground/              # 🎮 SDK 交互式测试环境（推荐入门）
-│   ├── playground.ts        #    核心 SDK 调用代码
-│   ├── lib/                 #    配置和 CLI 模块
-│   └── utils/               #    打印输出工具
-│
-├── 01-quick-start/          # 🚀 第一章：快速入门
-│   ├── app/                 #    Next.js App Router
-│   ├── components/          #    UI 组件（三栏布局、Markdown 等）
-│   ├── lib/storage/         #    JSONL 文件存储实现
-│   ├── packages/core/       #    核心类型定义（Monorepo）
-│   ├── README.md            #    详细教程文档
-│   └── CLAUDE.md            #    Claude Code 开发指引
-│
-├── 02-tools-and-mcp/        # 🔧 第二章：工具与 MCP
-│   ├── app/                 #    Next.js App Router + API Routes
-│   ├── components/          #    工具活动可视化组件
-│   ├── packages/shared/     #    PromaAgent 事件驱动架构
-│   ├── packages/core/       #    核心类型定义
-│   └── CLAUDE.md            #    开发指引
-│
-├── 03-agent-with-permission/ # 🔐 第三章：Agent 权限控制
-│   ├── app/                 #    权限审批 API + 聊天 API
-│   ├── components/          #    权限审批 UI 组件
-│   ├── packages/shared/     #    canUseTool 权限回调
-│   └── CLAUDE.md            #    开发指引
-│
-├── 04-agent-teams/          # 🤝 第四章：Agent Teams 多 Agent 协作
-│   ├── app/                 #    Teams API + Chat API（Auto-Resume）
-│   ├── components/          #    TeammateCard、详情面板
-│   ├── packages/shared/     #    PromaAgent + Agent Teams 事件
-│   ├── lib/                 #    AgentTeamStore 状态管理
-│   └── CLAUDE.md            #    开发指引
-│
-└── README.md                # 📖 本文件（系列教程总览）
+```text
+00-playground/
+00-playground-v2/
+01-quick-start/
+02-tools-and-mcp/
+03-agent-with-permission/
+04-agent-teams/
+05-memory-and-skills/
+06-remote-and-multi-provider/
 ```
 
----
+## 学习时特别值得关注的概念
 
-## 🎯 核心理念
+整套系列会反复围绕这些 Agent SDK / 产品概念展开：
 
-> **软件的本质，归根结底是对状态的优雅处理。**
+- sessions：为什么 Agent 应用需要持续会话，而不只是请求响应。
+- tools：为什么“会调用工具”会改变 Agent 的边界。
+- MCP：为什么工具接入要标准化，而不是一直硬编码。
+- permissions：为什么用户授权和拦截是 Agent 产品的基础设施。
+- teams：为什么有些任务适合被拆分成多 Agent 协作。
+- memory：为什么连续体验不等于无限追加聊天历史。
+- skills：为什么可复用能力模块比一次性 prompt 更适合扩展。
+- provider abstraction：为什么真实产品不会永远绑定单一模型提供方。
 
-这是贯穿本系列教程的核心哲学。无论是：
-- Claude Agent SDK 的 **Session 状态**
-- React 的 **组件状态**
-- Proma 的 **应用状态**
+## 相关资源
 
-掌握**状态的本质**，你就能理解现代软件开发的精髓。
+- [Claude Agent SDK 官方文档](https://platform.claude.com/docs/en/agent-sdk/typescript)
+- [Anthropic API 文档](https://docs.anthropic.com/)
+- [MiniMax API 文档](https://platform.minimaxi.com/docs/guides/text-generation)
+- [Proma](https://github.com/ErlichLiu/proma-oss.git)
 
-## ✨ 教程特色
+## 贡献说明
 
-- 📚 **体系完整**：从基础到高级，覆盖 Agent SDK 完整能力
-- 🔄 **渐进式学习**：每章在前一章基础上递进，循序渐进
-- 💻 **实战导向**：每章都是**可运行的完整项目**，边学边练
-- 📖 **详细文档**：每个项目配备详尽的 README 和 CLAUDE.md 开发指引
-- 🤖 **AI 协作实践**：大部分内容由 Claude Code 编写，展示 AI 辅助开发最佳实践
-- 🇨🇳 **中文优先**：高质量中文技术文档，降低学习门槛
-
-### 技术栈
-
-- **Claude Agent SDK** v0.2.68+ · 默认模型 `claude-sonnet-4-6`
-- **Next.js** 16 (App Router) · **React** 19 · **TypeScript** 5 (strict)
-- **Tailwind CSS** 4 · **Shadcn UI** · **framer-motion**
-- **pnpm** workspace monorepo（02-04 章）
-
----
-
-## 🔗 相关资源
-
-### 官方文档
-- [Claude Agent SDK 官方文档](https://platform.claude.com/docs/en/agent-sdk/typescript) - TypeScript SDK 官方指南
-- [Anthropic API 文档](https://docs.anthropic.com/) - Claude API 完整文档
-- [MiniMax API 文档](https://platform.minimaxi.com/docs/guides/text-generation) - MiniMax API 完整文档
-
-### 相关项目
-- [Proma](https://github.com/ErlichLiu/proma-oss.git) - 基于 Agent SDK 的完整开源产品（即将发布）
-- [Claude Code](https://claude.ai/code) - Anthropic 官方代码编辑器
-- [MCP Servers](https://github.com/anthropics/mcp-servers) - Model Context Protocol 服务端实现
-- [Craft Agent OSS](https://github.com/lukilabs/craft-agents-oss) - 本项目设计参考，推荐学习
-
-### 技术栈
-- [Next.js 文档](https://nextjs.org/docs) - App Router 完整指南
-- [Shadcn UI](https://ui.shadcn.com) - UI 组件库
-- [Tailwind CSS](https://tailwindcss.com/docs) - 原子化 CSS 框架
-
----
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！如果这个项目对你有帮助：
-
-- ⭐ **Star 本项目** - 让更多人看到这个教程
-- 🐛 **报告 Bug** - 发现问题请提 Issue
-- 📖 **完善文档** - 发现错误或有改进建议欢迎 PR
-- 💡 **分享经验** - 在 Discussion 中分享你的学习心得
-- 🚀 **贡献到 Proma** - 学完本教程后欢迎为 [Proma](https://github.com/your-proma-link) 项目做贡献
-
-### 如何贡献
-
-1. Fork 本仓库
-2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交你的改动 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启一个 Pull Request
-
----
-
-## ❓ 常见问题
-
-<details>
-<summary><strong>Q: 我需要什么基础知识？</strong></summary>
-
-- **必需**：JavaScript/TypeScript 基础、React 基础
-- **推荐**：Next.js 了解、异步编程经验
-- **加分项**：有使用过 LLM API 的经验
-
-</details>
-
-<details>
-<summary><strong>Q: Agent SDK 和直接调用 Claude API 有什么区别？</strong></summary>
-
-Agent SDK 提供了更高层的抽象：
-- **自动上下文管理**：不需要手动拼接 messages
-- **文件系统集成**：Agent 可以读写本地文件
-- **工具调用封装**：内置 Tool Calling 和 MCP 支持
-- **会话持久化**：自动存储对话历史
-
-适合构建**持久化、有状态的 AI 应用**，而不是简单的问答。
-
-</details>
-
-<details>
-<summary><strong>Q: 为什么选择 Next.js？</strong></summary>
-
-- **App Router**：原生支持 Server Actions 和流式响应
-- **全栈能力**：API Routes 便于构建后端逻辑
-- **开发体验**：热重载、TypeScript 支持、现代工具链
-- **生态丰富**：与 Shadcn UI、Tailwind CSS 等无缝集成
-
-当然，你也可以将 Agent SDK 集成到任何 Node.js 框架和 Python 框架中，并不代表在正式生产项目上采用 NextJS。
-
-</details>
-
-<details>
-<summary><strong>Q: 这个教程会持续更新吗？</strong></summary>
-
-是的！本教程随 **Proma 项目**的开发进度持续更新：
-- ✅ 第一章已完成（快速入门）
-- ✅ 第二章已完成（工具与 MCP）
-- ✅ 第三章已完成（权限控制）
-- ✅ 第四章已完成（Agent Teams）
-
-关注本仓库获取最新更新通知。
-
-</details>
-
----
-
-## 📄 License
-
-MIT License - 自由使用，欢迎改进和分享
-
----
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=ErlichLiu/claude-agent-sdk-master&type=date&legend=top-left)](https://www.star-history.com/#ErlichLiu/claude-agent-sdk-master&type=date&legend=top-left)
-
-<p align="center">
-  <strong>🎓 开始学习：</strong>
-  <a href="./01-quick-start">第一章：快速入门</a>
-</p>
-
-<p align="center">
-  <i>本教程由 Claude Code 协助创建 ✨</i><br>
-  <i>随 Proma 开发进度持续更新</i><br>
-  <i>如果对你有帮助，欢迎 Star ⭐️</i>
-</p>
+欢迎通过 Issue 和 PR 一起完善这套教程。对本仓库的任何结构性修改，请同步更新对应目录下的 `AGENTS.md`，保证文档与代码状态一致。

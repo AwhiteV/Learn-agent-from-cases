@@ -6,6 +6,10 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 This is a tutorial repository for the Codex Agent SDK, structured as a monorepo containing multiple Next.js-based tutorial projects. The naming convention (01-quick-start, 02-xxx, etc.) indicates sequential learning modules.
 
+At the root level, keep the tutorial narrative aligned with a beginner-first progression:
+- `00-playground` and `00-playground-v2` are the mental-model entry points
+- `01-quick-start` to `06-remote-and-multi-provider` are the currently runnable mainline chapters
+
 ## Package Manager
 
 **Always use pnpm** - This project exclusively uses pnpm as the package manager.
@@ -23,6 +27,8 @@ cd 01-quick-start && pnpm dev
 - **Monorepo Layout**: Each numbered directory (01-quick-start, etc.) is a self-contained Next.js tutorial project
 - **Individual workspaces**: Each tutorial project has its own package.json and can be run independently
 - **Shared configuration**: Root-level .npmrc and .gitignore apply to all projects
+- **Design docs**: Architecture/spec documents for repo-wide tutorial evolution are stored under `docs/superpowers/specs/`
+- **Implementation plans**: Execution plans for multi-step tutorial upgrades are stored under `docs/superpowers/plans/`
 
 ## Development Commands
 
@@ -104,6 +110,21 @@ pnpm lint     # Run ESLint
 - Next.js 16.1.6 (App Router) + Monorepo (pnpm workspace)
 - Orchestrator-Subagent 模式，支持多 Agent 并行协作
 - 详见 `04-agent-teams/AGENTS.md`
+
+### Planned Future Chapters
+- `05-memory-and-skills`：当前已落地为可运行章节，用于讲解 memory、skills 与能力模块化
+- `06-remote-and-multi-provider`：当前已落地为可运行章节，用于讲解 remote execution 与 provider abstraction
+
+### Tutorial Expansion Specs
+- `docs/superpowers/specs/` 用于存放教程体系升级、章节规划、实现设计等文档
+- 当根目录教程路线、章节结构或新增教程目录发生变化时，需要同步更新这里的设计文档或新增对应 spec
+- 如果新增章节涉及新的教学定位，需确保 spec、根 README 与根 AGENTS.md 三者描述一致
+- 如果同一份教程扩展 spec 同时存在英文版和中文版，两个版本必须保持同步更新；修改任一版本时，都要检查另一版本是否需要同步，避免维护责任不清或内容漂移
+
+### Tutorial Expansion Plans
+- `docs/superpowers/plans/` 用于存放多步骤教程升级任务的执行计划
+- 当一次改动同时涉及多个章节、根文档与新教程目录时，应先补充 plan 再开始实现
+- plan 中的目录结构、验证命令与最终落地文件应保持一致，避免执行过程中产生文档漂移
 
 ### Key Files
 - `app/layout.tsx`: Root layout with Geist font configuration

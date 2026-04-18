@@ -1,297 +1,86 @@
 # Claude Agent SDK 系列教程 - 第三章：Agent 权限控制
 
-> **教程定位**
-> 本教程是 **Claude Agent SDK 系列教程的第三部分**，基于第二章的架构，深入探讨如何实现 Agent 的权限管理与安全控制。
+从这一章开始，教程进入“Agent 产品基础设施”阶段。前一章已经让 Agent 能调用工具了，但一旦工具真的能读文件、执行命令、修改环境，权限系统就不再是锦上添花，而是底层必需品。
 
-## 📖 系列教程路线图
-
-本系列采用**渐进式学习路径**，每一章都在前一章的基础上递进：
-
-- **第一章**：快速入门 - 核心概念与基础对话 ✅
-- **第二章**：工具调用 - 集成 MCP Tools，实现 Agent 能力 ✅
-- **第三章（本章）**：权限控制 - Agent 权限管理与安全控制 ⏳
-- **第四章**：高级特性 - 自定义系统提示、成本追踪、流式优化
-
-## 💡 设计哲学
-
-**软件的本质，归根结底是对状态的优雅处理。**
-
-无论是 Claude Agent SDK 的会话状态、React 的组件状态，还是未来的 Proma 开源项目，核心都是如何优雅地管理和转换状态。本系列教程将这一理念贯穿始终，帮助你建立系统化的思维模型。
-
-> **✨ 关于本教程**
-> 本教程的大部分内容由 Claude Code 编写而成。每个项目都配有详尽的 `CLAUDE.md` 文档作为开发指引。我强烈建议你在学习的基础上进行实验和改动——**实践是最好的老师**。
-
----
-
-## 🎓 第三章学习目标
-
-完成本章后，你将掌握：
-
-1. **Agent 权限控制机制**
-   - 理解 SDK 的 `canUseTool` 回调与 `PermissionMode`
-   - 实现交互式工具权限审批（Allow / Deny / Always Allow）
-   - 处理 `PermissionResult` 的 `updatedInput` 机制
-
-2. **AskUserQuestion 问答交互**
-   - 理解 AskUserQuestion 作为特殊工具的权限流程
-   - 实现专用问答 UI（单选/多选/自定义输入）
-   - 通过 `updatedInput.answers` 回传用户答案给 SDK
-
-3. **跨 Route 异步状态管理**
-   - 使用 Promise + SSE 实现跨请求的异步等待
-   - 解决 Next.js App Router 模块隔离问题（`globalThis` 模式）
-   - 处理 AbortSignal 防止 Promise 泄漏
-
-> **⚠️ 前置要求**
-> 本章假设你已经完成第二章的学习，理解了 PromaAgent 事件驱动架构、工具活动可视化和 Monorepo 结构。
-
----
-
-## ⚡ 快速开始
-
-### 前置要求
-
-- Node.js 18+
-- pnpm 包管理器
-- Anthropic API Key（[获取地址](https://console.anthropic.com/)）
-
-### 三步启动
-
-**1️⃣ 安装依赖**
+## 快速开始
 
 ```bash
+cd 03-agent-with-permission
 pnpm install
-```
-
-**2️⃣ 配置 API Key**
-
-```bash
 cp .env.local.example .env.local
-# 编辑 .env.local，填入你的 API Key
-```
-
-**3️⃣ 启动开发服务器**
-
-```bash
+# 在 .env.local 中填写 ANTHROPIC_API_KEY
 pnpm dev
 ```
 
-访问 [http://localhost:3000](http://localhost:3000)，发送需要工具调用的消息（如 "读取当前目录的文件列表"），即可看到权限选择器。
+打开 [http://localhost:3000](http://localhost:3000)。
 
----
+## 这一章解决什么问题
 
-## ✨ 项目特性
+当 Agent 开始具备行动能力后，产品就必须回答一个基础问题：哪些动作可以直接执行，哪些动作需要用户确认，确认结果又怎么回到 Agent 运行流里。
 
-| 特性 | 说明 | 技术实现 |
-|------|------|----------|
-| 🛡️ **交互式权限审批** | Agent 调用工具前需用户确认 | `canUseTool` + SSE + Promise |
-| ❓ **AskUserQuestion 问答** | Agent 向用户提问，渲染专用表单 | 单选/多选/自定义输入 + `updatedInput` |
-| 🔄 **流式对话** | 实时展示 Claude 的响应 | Server-Sent Events (SSE) |
-| 🔧 **工具活动可视化** | 实时追踪工具调用生命周期 | ToolActivityManager + AgentEvent |
-| 📝 **会话管理** | 自动保存和加载历史对话 | JSONL 格式本地存储 |
-| 📁 **文件浏览** | 浏览工作目录，预览文件内容 | 文件系统 API |
-| 🎨 **Markdown 渲染** | 代码高亮、表格、列表等完整支持 | react-markdown + highlight.js |
+所以这一章要解决的不是“多一个弹窗”这么简单，而是 Agent 产品里最核心的一层基础设施：
 
----
+- 在工具执行前拦一下
+- 把权限请求展示给用户
+- 把用户决定可靠地传回正在运行的 Agent
 
-## 🏗️ 权限系统架构
+如果没有这层能力，Agent 应用很难真正上线。
 
-本章的核心创新是基于 SSE + Promise 的异步权限控制系统。
+## 这一章的可运行案例是什么
 
-### 完整数据流
+这是第二章应用的增强版，新增了完整的交互式权限系统：
 
-```
-SDK canUseTool(toolName, input, options)
-       ↓
-创建 Promise + 存 resolver 到 globalThis Map
-       ↓
-SSE 发送 permission_request 事件到前端
-       ↓
-前端渲染 PermissionSelector
-  ├── 通用工具 → Allow / Deny / Always Allow 按钮
-  └── AskUserQuestion → 专用问答表单（单选/多选/Other）
-       ↓
-用户操作 → POST /api/chat/permission
-       ↓
-查找 resolver → resolve Promise → SDK 继续执行
-```
+- Agent 发起工具调用时，可以触发前端审批
+- 用户可以 Allow、Deny，或者在支持建议规则时选择 Always Allow
+- `AskUserQuestion` 这类“Agent 反过来向用户提问”的特殊工具，也会被渲染成专门表单
 
-### 关键文件
+后端通过 `canUseTool` + SSE + Promise 把“正在运行的工具调用”与“前端的用户决策”连接起来；前端通过 `components/permission-selector.tsx` 展示通用审批 UI 和 `AskUserQuestion` 表单。
 
-| 文件 | 职责 |
-|------|------|
-| `packages/shared/src/agent/proma-agent.ts` | 支持 `canUseTool` 回调和动态 `permissionMode` |
-| `lib/permission-store.ts` | 基于 `globalThis` 的 Promise resolver 存储 |
-| `app/api/chat/route.ts` | 创建 `canUseTool` 闭包，通过 SSE 发送权限请求 |
-| `app/api/chat/permission/route.ts` | 接收用户决策，resolve 对应 Promise |
-| `components/permission-selector.tsx` | 前端权限 UI（通用选择器 + AskUserQuestion 表单） |
+## 动手实践：你应该点什么 / 输入什么 / 观察什么
 
-### 权限模式自动选择
+推荐至少做下面两个练习场景。
 
-```typescript
-// PromaAgent 根据是否提供 canUseTool 自动选择权限模式
-const permissionMode = config.permissionMode
-  ?? (hasCanUseTool ? 'default' : 'bypassPermissions');
-```
+练习场景 1：普通工具审批
 
-- 提供 `canUseTool` → `permissionMode: 'default'`（交互式审批）
-- 未提供 → `permissionMode: 'bypassPermissions'`（跳过审批，向后兼容）
+1. 输入 `请检查当前目录有哪些文件，并告诉我最值得先看的三个。`
+2. 观察权限面板弹出。
+3. 先点一次 `Deny`，再重新发送相同请求并点 `Allow`。
 
-### AskUserQuestion 特殊处理
+观察什么：同一个用户请求，在不同权限决策下会走出完全不同的执行路径。你会真正感受到“权限系统影响的是 Agent 行为，而不只是界面文案”。
 
-当 Agent 需要向用户提问时，SDK 会触发 `canUseTool('AskUserQuestion', input, options)`。前端检测到 `toolName === 'AskUserQuestion'` 后，渲染专用问答表单：
+练习场景 2：AskUserQuestion 表单
 
-- 解析 `input.questions` 数组，渲染每个问题的选项
-- 支持单选（radio）、多选（checkbox）和 "Other" 自定义文本输入
-- 用户提交后，将 `answers: Record<string, string>` 合并到 `updatedInput` 回传给 SDK
+1. 输入一个容易让 Agent 反问你的请求，比如 `帮我规划一个 demo，但先把方案风格问清楚再继续。`
+2. 当界面出现问答表单时，选择选项或填写自定义答案并提交。
 
-```typescript
-// AskUserQuestionForm 提交逻辑
-const handleSubmit = () => {
-  const updatedInput = { ...request.input, answers };
-  onDecision(request.requestId, 'allow', undefined, updatedInput);
-};
-```
+观察什么：这不是普通聊天输入框，而是 Agent 通过 `AskUserQuestion` 发起的结构化提问；答案会通过 `updatedInput` 回到 SDK，再继续后续步骤。
 
-### globalThis 跨 Route 共享
+如果你还想多做一个练习，可以切换不同权限模式后重复上面的两个场景，比较产品体验差异。
 
-Next.js App Router 中，`/api/chat` 和 `/api/chat/permission` 可能加载不同的模块实例，导致模块级变量不共享。使用 `globalThis` 解决：
+## 这一章对应的 Agent SDK 概念
 
-```typescript
-const STORE_KEY = '__permission_pending_store__';
-function getStore(): Map<string, PendingPermission> {
-  const g = globalThis as Record<string, unknown>;
-  if (!g[STORE_KEY]) {
-    g[STORE_KEY] = new Map<string, PendingPermission>();
-  }
-  return g[STORE_KEY] as Map<string, PendingPermission>;
-}
-```
+- `canUseTool`：你可以把它理解为“工具执行前的闸门函数”。每次 Agent 想用工具时，应用都有机会决定放行、拒绝或修改输入。
+- `PermissionMode`：这是权限策略的大方向开关。对新手最直观的理解是，“默认要不要经过审批流程”。
+- `AskUserQuestion`：它虽然长得像聊天，但在这章里应当把它理解成一种特殊工具调用。Agent 不是随便问一句，而是在请求结构化的人类输入。
+- `updatedInput`：如果用户回答了问题，或你想在放行前改写输入，新的输入会通过它回到 SDK。
 
-### AbortSignal 清理
+给新手的最短解释可以是：
 
-当用户点击停止或断开连接时，通过 AbortSignal 自动 resolve 挂起的 Promise，防止内存泄漏：
+- `canUseTool` 决定“拦不拦”
+- `PermissionMode` 决定“默认怎么拦”
+- `AskUserQuestion` 决定“什么时候需要人来补信息”
 
-```typescript
-if (options.signal) {
-  options.signal.addEventListener('abort', () => {
-    resolvePending(requestId, { behavior: 'deny', message: 'Request aborted' });
-  }, { once: true });
-}
-```
+## 这一章与 Proma 产品能力的映射
 
----
+- 权限审批面板，对应 Proma 中最基础的安全交互层。
+- `AskUserQuestion` 表单，对应 Proma 里的结构化人机协作能力。
+- `canUseTool` + Promise store，对应 Proma 里把“运行中的 Agent”与“前端用户操作”连接起来的基础设施。
 
-## 📂 项目结构
+这一章不是简单加一个安全功能，而是在搭 Proma 里“可信 Agent”所必需的产品底座。
 
-```
-03-agent-with-permission/
-├── packages/
-│   ├── core/                          # 📦 核心类型定义包
-│   │   └── src/
-│   │       ├── message.ts             # 消息类型
-│   │       ├── session.ts             # 会话类型
-│   │       ├── workspace.ts           # 工作空间配置
-│   │       └── storage.ts             # 存储接口
-│   │
-│   └── shared/                        # 📦 共享 Agent 逻辑包
-│       └── src/agent/
-│           ├── agent-event.ts         # AgentEvent 类型（含 permission_request）
-│           ├── proma-agent.ts         # PromaAgent（支持 canUseTool）
-│           ├── tool-matching.ts       # 无状态工具匹配
-│           └── options.ts             # Agent 配置选项
-│
-├── app/api/
-│   ├── chat/
-│   │   ├── route.ts                   # 聊天 API + canUseTool 闭包
-│   │   └── permission/route.ts        # 🆕 权限决策 API
-│   ├── sessions/                      # 会话管理 API
-│   └── files/route.ts                 # 文件浏览 API
-│
-├── components/
-│   ├── chat-interface.tsx             # 聊天 UI（集成权限选择器）
-│   ├── permission-selector.tsx        # 🆕 权限请求 UI（通用 + AskUserQuestion）
-│   ├── tool-activity-list.tsx         # 工具活动列表
-│   ├── tool-activity-row.tsx          # 工具活动行
-│   ├── tool-activity-icon.tsx         # 工具活动图标
-│   ├── session-list.tsx               # 会话历史列表
-│   ├── file-explorer.tsx              # 文件浏览器
-│   └── markdown-renderer.tsx          # Markdown 渲染
-│
-├── lib/
-│   ├── permission-store.ts            # 🆕 权限 Promise resolver 存储（globalThis）
-│   ├── tool-activity.ts               # 工具活动管理器
-│   ├── tool-display.ts                # 工具显示逻辑
-│   ├── tool-icon-config.ts            # 工具图标配置
-│   └── storage/                       # 本地存储实现
-│
-└── .data/                             # 数据存储（gitignored）
-```
+## 学完这一章后你应该掌握什么
 
----
-
-## 🛠️ 技术栈
-
-| 类别 | 技术选型 | 版本 |
-|------|----------|------|
-| **框架** | Next.js (App Router) | 16.1.6 |
-| **UI 库** | React | 19.2.3 |
-| **类型系统** | TypeScript (strict) | 5.x |
-| **样式方案** | Tailwind CSS | 4.x |
-| **组件库** | Shadcn UI | - |
-| **AI SDK** | Claude Agent SDK | 0.2.29 |
-| **动画** | framer-motion | 12.30.0 |
-| **Markdown** | react-markdown + highlight.js | - |
-| **包管理器** | pnpm (Workspace) | - |
-
----
-
-## 📚 详细文档
-
-想了解完整的实现细节？查看 [CLAUDE.md](./CLAUDE.md) 获取：
-
-- 完整的架构设计说明
-- PromaAgent 事件驱动架构详解
-- 权限系统的完整实现细节
-- 工具活动可视化系统
-- API Routes 的详细文档
-
----
-
-## 🚀 下一步
-
-完成本章学习后，你可以：
-
-1. **🔧 实验改造**
-   - 实现 "Always Allow" 的持久化存储
-   - 添加权限规则引擎（基于工具名自动审批）
-   - 为 AskUserQuestion 添加更多输入类型
-
-2. **📖 继续学习**
-   - 第四章：高级特性 - 自定义系统提示、成本追踪、流式优化
-
-3. **💡 探索 SDK**
-   - 阅读 [Claude Agent SDK 官方文档](https://platform.claude.com/docs/en/agent-sdk/typescript)
-   - 研究 `PermissionMode` 和 `CanUseTool` 的更多用法
-
----
-
-## 🔗 相关资源
-
-- [Claude Agent SDK 文档](https://platform.claude.com/docs/en/agent-sdk/typescript) - 官方 SDK 文档
-- [Next.js 文档](https://nextjs.org/docs) - Next.js App Router 指南
-- [Shadcn UI](https://ui.shadcn.com) - UI 组件库文档
-- [Tailwind CSS](https://tailwindcss.com/docs) - 样式框架文档
-
----
-
-## 📄 License
-
-MIT License - 自由使用，欢迎改进和分享
-
----
-
-<p align="center">
-  <i>这个项目由 Claude Code 协助创建 ✨</i><br>
-  <i>如果对你有帮助，欢迎 Star ⭐️</i>
-</p>
+- 理解为什么权限系统是 Agent 产品的基础设施，而不是附加功能。
+- 能用新手能听懂的话解释 `canUseTool`、`PermissionMode`、`AskUserQuestion`。
+- 能亲手完成至少两个权限练习场景，并知道每一步该观察什么。
+- 能理解用户决策是如何通过 SSE 和后端 Promise 重新接回 Agent 运行流的。
