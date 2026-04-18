@@ -62,6 +62,8 @@ corepack pnpm test
 - Any code change in this chapter must keep `05-memory-and-skills/AGENTS.md`
   and `05-memory-and-skills/README.md` in sync.
 - Keep the learning assistant script, `README.md`, and `AGENTS.md` in sync.
+- 学习助手现在是双模式抽屉：默认 `操作引导`，可切换到 `实现视角`；后者适合已经跑通过 case 的学习者，用来回看关键实现链路。
+- 如果你修改 memory 选择、skill 切换、`Prompt preview`、请求组装链路或 chat 响应拼装逻辑，必须同步检查 `实现视角` 里的文件、函数职责和数据流说明是否仍然准确。
 - If memory targets, skill targets, or learning steps change, update the script, tests, and docs in the same task.
 - 仓库面向中文学习者时，学习助手文案默认使用中文；除非明确要求双语，否则不要回退成英文。
 - `README.md` 应保持和前面章节一致的教学结构，至少包括“这一章解决什么问题”“这一章的 runnable case 是什么”“动手实践”“这一章对应的 Agent SDK 概念”“与 Proma 的映射”“学完这一章后你应该知道什么”等核心段落。
