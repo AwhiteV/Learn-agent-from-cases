@@ -6,6 +6,7 @@
 
 ```bash
 cp ../.env.local.example ../.env.local
+# 只需要在仓库根目录初始化一次共享配置
 # 在仓库根目录的 .env.local 中填写 ANTHROPIC_API_KEY
 # 如需切换模型，可额外配置 ANTHROPIC_MODEL，例如 claude-sonnet-4-6
 cd 02-tools-and-mcp
@@ -13,7 +14,7 @@ pnpm install
 pnpm dev
 ```
 
-默认情况下，本章会自动复用仓库根目录的 `.env.local`；只有当你想为本章单独覆盖配置时，才需要在 `02-tools-and-mcp/` 目录里额外放一个 `.env.local`。
+`01-04` 章节默认都会复用仓库根目录的 `.env.local`，所以学习新章节时通常不需要重复配置。若你确实想只覆盖本章配置，仍然可以手动在 `02-tools-and-mcp/` 目录里额外放一个 `.env.local`。
 
 打开 [http://localhost:3000](http://localhost:3000)。
 

@@ -35,4 +35,4 @@ This chapter teaches orchestrator/subagent collaboration, task decomposition, an
 - If you add or rename learning steps, target ids, or highlighted regions, update the script, README, and tests in the same task.
 - If teammate or task UI changes, update the learning targets and chapter docs in the same task.
 - 仓库面向中文学习者时，学习助手文案默认使用中文；除非明确要求双语，否则不要回退成英文。
-- 本章默认复用仓库根目录的 `.env.local`；如果修改环境变量读取方式，需要同步更新根 README、本章 README 和本文件。
+- 本章默认复用仓库根目录的 `.env.local`，不再维护章节内 `.env.local.example`；如果修改环境变量读取方式或覆盖约定，需要同步更新根 README、本章 README 和本文件。

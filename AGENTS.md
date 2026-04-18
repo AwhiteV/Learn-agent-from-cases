@@ -155,8 +155,9 @@ When adding a new tutorial (e.g., 02-xxx):
 ### Working with Environment Variables
 
 All .env* files are gitignored. Each tutorial project should:
-- Use .env.local for local development secrets
-- Document required environment variables in its README.md
+- Reuse the repository-root `.env.local` as the default setup for runnable chapters `01` to `04`
+- Use chapter-local `.env.local` only when a chapter explicitly supports per-chapter overrides
+- Document required environment variables and override behavior in its README.md
 
 ### Path Aliases
 
