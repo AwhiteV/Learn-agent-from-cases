@@ -32,7 +32,12 @@ corepack pnpm dev
 
 学习者看到的重点不是“系统有多复杂”，而是“什么在变，什么不该变”。
 
-为了降低第一次体验这章时的理解门槛，页面右下角也提供了一个“学习助手”浮层入口，会引导你先切 provider、再发送同一请求、再去观察 stable abstraction 和 transcript 差异。
+为了降低第一次体验这章时的理解门槛，页面右下角也提供了一个“学习助手”抽屉入口，而且现在和 05 章一样支持双模式：
+
+- `操作引导`：适合第一次跑 case 的学习者，按步骤带你先切 provider、再发同一请求、再观察 stable abstraction 和 transcript 差异。
+- `实现视角`：适合已经跑通过一次 case 的学习者，重点回看 provider switcher、chat route、provider registry、provider inspector 之间是怎样串成一条协作链的。
+
+这两个模式讲的是同一条 provider 切换路径，只是一个先帮你把实验做出来，另一个再帮你把实现读明白。
 
 ## remote agent 与 provider abstraction 的核心概念
 
@@ -101,6 +106,15 @@ export interface AgentProvider {
 
 这就是 provider abstraction 最重要的教学结果：调用路径可以替换，产品层的交互面不必跟着碎裂。
 
+如果你打开学习助手的 `实现视角`，建议按下面这条链路回看一次：
+
+1. `provider switcher` 只负责改当前 `providerId`。
+2. `chat console` 在提交时把 `providerId + message` 送到 `POST /api/chat`。
+3. `chat route` 通过 `provider registry` 找到对应 provider，并返回统一的 `ProviderResult`。
+4. `provider inspector` 和 transcript 再基于这份统一结果，把 execution mode、notes 和输出差异渲染出来。
+
+理解这条链之后，这一章最关键的设计判断就会很清楚：provider 可以换，协作链可以扩展，但前台学习界面和请求契约不需要因此裂成多套。
+
 ## 这一章对应的 Agent SDK 概念
 
 - Provider abstraction / stable contract：这一章把不同执行后端都约束在统一的 `AgentProvider` 接口之下，让上层 UI 和 API 只消费稳定 contract，而不关心底层细节。
@@ -125,6 +139,7 @@ export interface AgentProvider {
 - `app/page.tsx`：章节入口，解释 runnable case 和学习路径
 - `components/chat-console.tsx`：主工作台，组合 provider 切换、请求发送和 transcript
 - `components/learning-assistant.tsx`：页面内抽屉式学习助手
+- `tests/learning-assistant-script.test.ts`：锁定学习助手脚本契约、目标挂载点，以及双模式实现视角 helper
 - `components/provider-switcher.tsx`：切换不同 provider 配置
 - `components/provider-inspector.tsx`：显示当前 provider、执行模式、稳定抽象和 provider notes
 - `app/api/chat/route.ts`：统一接收 `message + providerId` 并分发到选中的 provider
@@ -133,7 +148,7 @@ export interface AgentProvider {
 - `lib/providers/local-agent.ts`：本地 provider 实现
 - `lib/providers/mock-remote.ts`：remote-style provider 实现
 - `lib/providers/index.ts`：provider registry 与 summary 数据
-- `lib/learning-assistant-script.ts`：章节学习助手的步骤脚本
+- `lib/learning-assistant-script.ts`：章节学习助手的步骤脚本，包含 `操作引导 / 实现视角` 双模式内容
 - `tests/providers.test.ts`：锁定 provider registry 和执行模式契约的基础测试
 
 ## 你学完这一章后应该掌握什么

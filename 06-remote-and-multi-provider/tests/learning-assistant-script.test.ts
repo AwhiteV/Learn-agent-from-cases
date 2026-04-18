@@ -4,6 +4,11 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import {
+  buildAdvancedViewModel,
+  getCollapsedAdvancedSections,
+} from "../components/learning-assistant";
+
 interface LearningStepContract {
   title: string;
   type: "action" | "observation" | "comparison" | "term" | "checkpoint";
@@ -186,4 +191,70 @@ test("learning target ids stay mounted in the remote-and-multi-provider UI", asy
       `Expected target "${targetId}" to exist in the mounted 06 UI`,
     );
   }
+});
+
+test("learning assistant drawer exposes the implementation-view helpers", () => {
+  const drawerSource = fs.readFileSync(
+    path.join(projectRoot, "components", "learning-assistant.tsx"),
+    "utf8",
+  );
+
+  assert.equal(drawerSource.includes("操作引导"), true);
+  assert.equal(drawerSource.includes("实现视角"), true);
+  assert.equal(drawerSource.includes("行为链"), true);
+  assert.equal(drawerSource.includes("发生了什么"), true);
+  assert.equal(drawerSource.includes("看代码"), true);
+  assert.equal(drawerSource.includes("数据流"), true);
+
+  const advancedView = buildAdvancedViewModel({
+    trigger: "你切换 provider 后，用同一条 message 再次提交。",
+    visibleEffect:
+      "provider inspector、execution mode 和 transcript 都会更新，但同一个 chat console 仍然复用。",
+    internals:
+      "前端先把 activeProviderId 保存在 chat console state，submit 时再把 providerId 交给 /api/chat，由 provider registry 查出具体 provider，并把统一结果交回 inspector。",
+    files: [
+      { path: "components/provider-switcher.tsx", role: "切换当前 provider" },
+      { path: "components/chat-console.tsx", role: "发起统一 chat 请求" },
+      { path: "lib/providers/index.ts", role: "提供 provider registry" },
+    ],
+    functions: [
+      {
+        name: "handleSubmit",
+        file: "components/chat-console.tsx",
+        role: "把 providerId 和 message 组装成 chat 请求",
+      },
+      {
+        name: "getProviderById",
+        file: "lib/providers/index.ts",
+        role: "根据 providerId 找到 provider adapter",
+      },
+    ],
+    dataFlow: [
+      "provider switcher",
+      "chat console state",
+      "/api/chat",
+      "provider registry",
+      "provider inspector",
+    ],
+  });
+
+  assert.deepEqual(getCollapsedAdvancedSections(), {
+    code: false,
+    flow: false,
+  });
+  assert.equal(advancedView.behaviorChain.title, "行为链");
+  assert.equal(advancedView.whatHappened.title, "发生了什么");
+  assert.equal(advancedView.code.files.length, 3);
+  assert.equal(advancedView.code.functions.length, 2);
+  assert.equal(
+    advancedView.code.functions.some((fn) => fn.name === "getProviderById"),
+    true,
+  );
+  assert.deepEqual(advancedView.dataFlow, [
+    "provider switcher",
+    "chat console state",
+    "/api/chat",
+    "provider registry",
+    "provider inspector",
+  ]);
 });

@@ -29,7 +29,7 @@ turn this chapter into a production remote orchestration system.
 
 - `components/learning-assistant.tsx`: in-page drawer and floating hint shell
 - `lib/learning-assistant-script.ts`: chapter-specific walkthrough content
-- `tests/learning-assistant-script.test.ts`: script contract and mounted target coverage
+- `tests/learning-assistant-script.test.ts`: script contract, mounted target coverage, and dual-mode implementation-view helper coverage
 
 ## Teaching Constraints
 
@@ -72,6 +72,8 @@ corepack pnpm test
   `06-remote-and-multi-provider/AGENTS.md` and
   `06-remote-and-multi-provider/README.md` in sync.
 - Keep the learning assistant script, `README.md`, and `AGENTS.md` in sync.
+- 学习助手现在是双模式抽屉：默认 `操作引导`，可切换到 `实现视角`；后者要帮助学习者回看 provider switcher、chat route、provider registry、provider inspector 之间的协作链。
+- 如果你修改 provider 切换、`POST /api/chat` 请求体、provider registry、provider summary、inspector 展示或 transcript 写入逻辑，必须同步检查 `实现视角` 中的行为链、文件列表、函数职责和数据流说明是否仍然准确。
 - If provider targets, execution labels, or learning steps change, update the script, tests, and docs in the same task.
 - 仓库面向中文学习者时，学习助手文案默认使用中文；除非明确要求双语，否则不要回退成英文。
 - `README.md` 应保持和前面章节一致的教学结构，至少包括“这一章解决什么问题”“动手实践”“这一章对应的 Agent SDK 概念”“与 Proma 的映射”“你学完这一章后应该掌握什么”等核心段落。
