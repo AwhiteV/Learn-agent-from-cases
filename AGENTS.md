@@ -10,6 +10,8 @@ At the root level, keep the tutorial narrative aligned with a beginner-first pro
 - `00-playground` and `00-playground-v2` are the mental-model entry points
 - `01-quick-start` to `06-remote-and-multi-provider` are the currently runnable mainline chapters
 - Root `README.md` may include homepage badges and a language-navigation line, but badge labels and language state must match the real repo status (for example, do not link to untranslated docs that do not exist yet)
+- Root `README.md` should remain beginner-friendly, including guidance that learners without a coding background may use AI coding tools to clone the repo, install dependencies, configure env files, and start chapters
+- Root `README.md` should reflect learner-facing chapter UX changes that affect multiple chapters, such as the in-page learning-assistant drawer now present in the runnable web chapters
 - If a root-level `README.en.md` exists, keep its chapter list and repo-status summary aligned with the Chinese `README.md`, even if the English page is intentionally shorter
 
 ## Package Manager
@@ -141,6 +143,7 @@ pnpm lint     # Run ESLint
 - `next.config.ts`: Next.js configuration
 - `tsconfig.json`: TypeScript configuration with strict mode
 - `.env.local.example`: 仓库级共享环境变量模板，默认供 `01` 到 `04` 章节复用
+- `学习助手.png`: 根 README 中用于展示章节内学习助手抽屉的项目级截图
 
 ## Common Patterns
 

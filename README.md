@@ -11,13 +11,12 @@
 
 一个面向初学者的中文优先教程仓库，帮助你从“第一次接触 Agent SDK”走到“理解面向产品的 Agent 架构”。
 
-本仓库不是 Proma 的功能镜像，也不是官方文档的翻译版。它更像一条可动手实践的学习路线：你会先看懂 session、tools、MCP 和权限这些基础能力，再逐步理解 teams、memory、skills 与 provider abstraction 为什么会在真实产品里变得重要。
-
 ## 这套教程适合谁
 
 如果你符合下面任意几项，这套教程就是为你准备的：
 
 - 你会基础的 JavaScript / TypeScript，最好也了解一点 React。
+- 如果你暂时没有代码基础，也不用担心；你可以使用任意一个 AI coding 工具克隆这个项目，并让它帮助你安装依赖、配置环境变量和启动项目，再跟着章节一步步学习。
 - 你用过大模型 API，但还没有真正建立 Agent SDK 的心智模型。
 - 你不想只看概念说明，更想通过“跑起来、改一改、观察结果”来学习。
 - 你想从单个聊天 Agent，逐步走到更接近真实产品的 Agent 应用结构。
@@ -40,8 +39,29 @@
 ### 给初学者的实用学习节奏
 
 - 第 1 遍：只跑项目，观察输入、输出、事件流和 UI 变化。
-- 第 2 遍：带着 README 的问题清单再操作一次，确认自己知道“该看哪里”。
+- 第 2 遍：带着 README 的问题清单，或者直接跟着页面里的“学习助手”抽屉再操作一次，确认自己知道“该看哪里”。
 - 第 3 遍：修改 prompt、工具配置或交互流程，验证你对系统行为的理解。
+
+从 `01` 章开始，Web 章节页面右下角都会提供一个“学习助手”入口。打开后会以页面内浮层 / 抽屉的形式，告诉你当前章节推荐先点哪里、输入什么、观察什么，以及相关的简短概念解释。建议第一次学习时先按抽屉步骤走一遍，第二次再脱离引导独立操作。
+
+## 页面内学习助手
+
+从 `01` 到 `04`，每个 Web 章节都已经内置了“学习助手”抽屉。它不是额外的文档页，而是直接出现在章节页面里的运行时引导层，适合你一边操作、一边理解当前案例到底想让你观察什么。
+
+![学习助手抽屉截图](./学习助手.png)
+
+你可以把它理解成“章节内的实验教练”，它会帮你完成这几件事：
+
+- 告诉你当前这一步建议先点击哪里、输入什么。
+- 提醒你应该重点观察哪个区域，比如聊天流式输出、工具活动、权限面板或 teammate 状态。
+- 用很短的概念解释，把“这个现象为什么重要”一起讲清楚。
+- 在你第一次跑 demo 时，降低“页面已经打开了，但我不知道下一步看什么”的迷路感。
+
+推荐用法是：
+
+1. 第一次学习某一章时，先跟着抽屉步骤完整走一遍。
+2. 第二次再关闭抽屉，自己独立复现一次。
+3. 如果中途忘了该看哪里，就用右下角入口重新打开。
 
 ## 00-06 学习地图
 
@@ -51,10 +71,10 @@
 | --- | --- | --- | --- | --- |
 | [`00-playground`](./00-playground) | 已存在 | 一个最小 CLI Playground，用最少代码体验 prompt、工具开关与输出模式 | 基础 prompting、工具调用观察、最小运行闭环 | “先看行为再谈架构”的实验场 |
 | [`00-playground-v2`](./00-playground-v2) | 已存在 | 一个更贴近新 Session API 的 CLI 实验台，用来理解 session 的创建、恢复与继续对话 | `unstable_v2_createSession`、`unstable_v2_resumeSession`、`unstable_v2_prompt`、session 生命周期 | 产品原型前的心智模型训练场 |
-| [`01-quick-start`](./01-quick-start) | 已存在 | 第一个可用的 Web Agent，包含会话持久化、工作区绑定与流式界面 | sessions、workspace、streaming UI、context persistence | 从 demo 走向“可使用的聊天工作台” |
-| [`02-tools-and-mcp`](./02-tools-and-mcp) | 已存在 | 一个能真正调用工具并展示工具活动的 Agent 应用 | tools、tool lifecycle、MCP、事件可视化 | 让 Agent 从“会回答”升级到“会行动” |
-| [`03-agent-with-permission`](./03-agent-with-permission) | 已存在 | 一个带审批与拦截流程的 Agent 应用 | permissions、`canUseTool`、`PermissionMode`、`AskUserQuestion` | 面向用户场景的安全控制层 |
-| [`04-agent-teams`](./04-agent-teams) | 已存在 | 一个支持 orchestrator/subagent 协作的多 Agent 示例 | teams、subagents、任务拆解、协作恢复流程 | 从单 Agent 走向多 Agent 编排 |
+| [`01-quick-start`](./01-quick-start) | 已存在 | 第一个可用的 Web Agent，包含会话持久化、工作区绑定、流式界面和章节学习助手抽屉 | sessions、workspace、streaming UI、context persistence | 从 demo 走向“可使用的聊天工作台” |
+| [`02-tools-and-mcp`](./02-tools-and-mcp) | 已存在 | 一个能真正调用工具、展示工具活动，并用学习助手引导你观察关键节点的 Agent 应用 | tools、tool lifecycle、MCP、事件可视化 | 让 Agent 从“会回答”升级到“会行动” |
+| [`03-agent-with-permission`](./03-agent-with-permission) | 已存在 | 一个带审批与拦截流程，并通过学习助手带你练习 Allow / Deny / AskUserQuestion 的 Agent 应用 | permissions、`canUseTool`、`PermissionMode`、`AskUserQuestion` | 面向用户场景的安全控制层 |
+| [`04-agent-teams`](./04-agent-teams) | 已存在 | 一个支持 orchestrator/subagent 协作，并提供章节内学习助手来解释团队状态视图的多 Agent 示例 | teams、subagents、任务拆解、协作恢复流程 | 从单 Agent 走向多 Agent 编排 |
 | [`05-memory-and-skills`](./05-memory-and-skills) | 已存在 | 一个带可视化 memory 面板与 skill 模式切换的学习型 Agent | memory、skills、上下文注入、能力模块化 | 连续体验、个性化与能力复用 |
 | [`06-remote-and-multi-provider`](./06-remote-and-multi-provider) | 已存在 | 一个展示远程执行形态与 provider abstraction 的产品化案例 | remote execution、provider abstraction、环境分离 | 更接近真实产品的接入层与部署思维 |
 
@@ -73,17 +93,17 @@
 
 `01-quick-start` 不再只是“能对话”，而是让你看到 workspace、session persistence 和 streaming UI 组合起来之后，一个基础 Agent 应用应该长什么样。
 
-这一章的重点不是页面有多复杂，而是让你感受到：Agent SDK 项目和普通聊天网页在状态管理上完全不是一回事。
+这一章的重点不是页面有多复杂，而是让你感受到：Agent SDK 项目和普通聊天网页在状态管理上完全不是一回事。现在章节页面里也带了“学习助手”抽屉，会直接告诉你应该先发什么消息、看哪里出现新 session、再去哪里理解 workspace。
 
 ### 02：给 Agent 接上行动能力
 
 `02-tools-and-mcp` 会把重点从“回答得对不对”转向“它能不能做事，以及你能不能看懂它在做什么”。
 
-这一章里，MCP 不是一个时髦名词，而是帮助你理解“工具为什么应该被标准化接入”的入口；工具活动可视化也不是装饰，而是学习 Agent 行为最直接的窗口。
+这一章里，MCP 不是一个时髦名词，而是帮助你理解“工具为什么应该被标准化接入”的入口；工具活动可视化也不是装饰，而是学习 Agent 行为最直接的窗口。学习助手抽屉会按顺序带你看工具调用、活动列表和最终回答之间的关系，减少第一次上手时的迷路感。
 
 ### 03：让 Agent 变得可控
 
-当 Agent 开始有行动能力，权限控制就不再是附加项。`03-agent-with-permission` 会帮你理解，为什么 permissions、审批、拒绝、AskUserQuestion 这些流程，本质上是在给 Agent 产品补安全基础设施。
+当 Agent 开始有行动能力，权限控制就不再是附加项。`03-agent-with-permission` 会帮你理解，为什么 permissions、审批、拒绝、AskUserQuestion 这些流程，本质上是在给 Agent 产品补安全基础设施。对应的学习助手抽屉也会引导你先做一次 Deny，再做一次 Allow，并观察用户决策是怎样回到正在运行的 Agent 里的。
 
 ### 04：理解什么时候值得引入多 Agent
 
@@ -92,6 +112,8 @@
 - 哪类任务值得拆给 subagent。
 - orchestrator 应该负责什么，不应该负责什么。
 - 多 Agent 协作带来的复杂度是否真的换来了收益。
+
+这一章的学习助手抽屉会重点帮你对照 teammate 状态、任务列表和最终汇总回答，判断这次拆解到底是不是合理。
 
 ### 05-06：迈向产品化思维
 
