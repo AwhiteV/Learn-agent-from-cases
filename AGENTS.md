@@ -58,6 +58,8 @@ pnpm lint     # Run ESLint
 2. **Communication**: Always explain design decisions before making significant changes
 3. **Next.js App Router**: Projects use Next.js 16+ with App Router (not Pages Router)
 4. **React Server Components**: Default to Server Components; use 'use client' only when needed
+5. **Git Commit Messages**: 默认使用中文提交信息；除非用户在当前任务里明确要求英文或其他格式，否则 `git commit -m` 一律写中文
+6. **Implementation Plan Execution**: 当实现计划已经写好并进入执行阶段时，默认选择 `Subagent-Driven`；除非用户在当前任务里明确要求 `Inline Execution`
 
 ## Documentation Requirements
 
