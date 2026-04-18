@@ -20,15 +20,14 @@ export function SkillSelector({
     >
       <div className="mb-4">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
-          Skill Selector
+          Skill 选择器
         </p>
         <h2 className="mt-2 text-2xl font-semibold text-stone-900">
-          Switch the assistant mode
+          切换助手工作模式
         </h2>
         <p className="mt-2 text-sm leading-6 text-stone-600">
-          The selected preset contributes the system prompt. Ask the same
-          question with another skill to compare tone, structure, and decision
-          framing.
+          当前选中的 preset 会决定 system prompt。把同一个问题换一个 skill 再问一遍，
+          更容易对比语气、结构和决策方式的差异。
         </p>
       </div>
 
@@ -54,7 +53,7 @@ export function SkillSelector({
                     isActive ? "bg-white/15 text-teal-100" : "bg-stone-200 text-stone-700"
                   }`}
                 >
-                  {isActive ? "Active" : "Preset"}
+                  {isActive ? "当前激活" : "预设"}
                 </span>
               </div>
               <p className={`mt-3 text-sm leading-6 ${isActive ? "text-teal-100" : "text-stone-600"}`}>
@@ -66,7 +65,7 @@ export function SkillSelector({
                 }`}
               >
                 <p className="font-semibold uppercase tracking-[0.18em]">
-                  System prompt
+                  系统提示词
                 </p>
                 <p className="mt-2">{skill.systemPrompt}</p>
               </div>

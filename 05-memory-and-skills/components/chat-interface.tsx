@@ -218,39 +218,38 @@ export function ChatInterface() {
         <section className="overflow-hidden rounded-[2.5rem] border border-stone-300/70 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.22),transparent_38%),radial-gradient(circle_at_top_right,rgba(20,184,166,0.22),transparent_36%),linear-gradient(135deg,rgba(255,251,235,0.97),rgba(255,255,255,0.92))] p-8 shadow-[0_24px_90px_rgba(63,43,27,0.14)]">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
-              Runnable Case
+              可运行案例
             </p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
-              Learning assistant with memory and mode switching
+              带记忆与模式切换的学习助手
             </h1>
             <p className="mt-4 text-base leading-8 text-stone-700 sm:text-lg">
-              Add a few learner memories, keep one skill active, and ask the
-              same question more than once. The response area shows the visible
-              prompt assembly so learners can inspect how memory injection and
-              skill presets change the assistant behavior.
+              先保存几条学习者记忆，再保持一个 skill 处于激活状态，把同一个问题重复问两次以上。
+              页面会把 prompt 组装过程可视化，方便你直接观察 memory 注入和 skill preset
+              是怎样改变助手行为的。
             </p>
           </div>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-3">
             <div className="rounded-[1.75rem] bg-white/70 p-5">
-              <p className="text-sm font-semibold text-stone-900">Try this</p>
+              <p className="text-sm font-semibold text-stone-900">先试这个</p>
               <p className="mt-2 text-sm leading-6 text-stone-600">
-                Save one preference memory and one project memory, then ask:
-                &quot;How should I learn TypeScript generics?&quot;
+                先保存一条偏好 memory 和一条项目 memory，然后提问：
+                &quot;我该怎么学习 TypeScript 泛型？&quot;
               </p>
             </div>
             <div className="rounded-[1.75rem] bg-white/70 p-5">
-              <p className="text-sm font-semibold text-stone-900">Observe this</p>
+              <p className="text-sm font-semibold text-stone-900">重点观察</p>
               <p className="mt-2 text-sm leading-6 text-stone-600">
-                Teacher mode explains, Builder mode plans, and Reviewer mode
-                critiques. The same question should look different in each mode.
+                教学模式会偏讲解，构建模式会偏计划，审阅模式会偏检查。
+                同一个问题在不同模式下应该呈现出明显不同的回答结构。
               </p>
             </div>
             <div className="rounded-[1.75rem] bg-white/70 p-5">
-              <p className="text-sm font-semibold text-stone-900">Inspect this</p>
+              <p className="text-sm font-semibold text-stone-900">再看这里</p>
               <p className="mt-2 text-sm leading-6 text-stone-600">
-                Check the prompt preview after each answer to see exactly which
-                memory block and system prompt were combined.
+                每次回答后都看一下 prompt 预览，确认到底是哪些 memory block
+                和 system prompt 被拼到了一起。
               </p>
             </div>
           </div>
@@ -284,27 +283,26 @@ export function ChatInterface() {
               <div className="flex flex-col gap-4 border-b border-stone-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
-                    Active setup
+                    当前配置
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold text-stone-900">
-                    Compare what the assistant sees
+                    对比助手当前看到的输入
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-stone-600">
-                    Send a question after adjusting the active skill and memory
-                    selection. The latest answer stays visible with a debug view
-                    for learners.
+                    每次调整当前 skill 或 memory 选择后都重新发问一次。
+                    最新回答会连同调试视图一起保留下来，方便学习者逐项对照。
                   </p>
                 </div>
                 <div className="rounded-[1.5rem] bg-stone-100 px-4 py-3 text-sm text-stone-600">
                   <p>
-                    <span className="font-semibold text-stone-900">Skill:</span>{" "}
-                    {activeSkill?.name ?? "Loading..."}
+                    <span className="font-semibold text-stone-900">当前 Skill：</span>{" "}
+                    {activeSkill?.name ?? "加载中..."}
                   </p>
                   <p className="mt-1">
-                    <span className="font-semibold text-stone-900">Injected memories:</span>{" "}
+                    <span className="font-semibold text-stone-900">已注入的记忆：</span>{" "}
                     {activeMemories.length > 0
                       ? activeMemories.map((memory) => memory.title).join(", ")
-                      : "None"}
+                      : "无"}
                   </p>
                 </div>
               </div>
@@ -314,12 +312,12 @@ export function ChatInterface() {
                   <div className="space-y-4" data-learning-target="transcript-panel">
                     {isLoading ? (
                       <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-500">
-                        Loading the chapter data...
+                        正在加载本章教学数据...
                       </div>
                     ) : transcript.length === 0 ? (
                       <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm leading-7 text-stone-500">
-                        No conversation yet. Ask one question, then switch the
-                        skill preset or selected memories and ask it again.
+                        还没有对话。先提一个问题，再切换 skill preset 或选中的 memory，
+                        然后把同一个问题再问一次。
                       </div>
                     ) : (
                       transcript.map((entry) => (
@@ -332,7 +330,7 @@ export function ChatInterface() {
                           }`}
                         >
                           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] opacity-70">
-                            {entry.role === "user" ? "Learner" : "Assistant"}
+                            {entry.role === "user" ? "学习者提问" : "助手回答"}
                           </p>
                           <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-7">
                             {entry.content}
@@ -344,27 +342,26 @@ export function ChatInterface() {
 
                   <form className="mt-5" onSubmit={handleSubmit}>
                     <label className="mb-2 block text-sm font-medium text-stone-700" htmlFor="chat-message">
-                      Ask the assistant
+                      向助手提问
                     </label>
                     <textarea
                       id="chat-message"
                       value={message}
                       onChange={(event) => setMessage(event.target.value)}
                       className="min-h-32 w-full rounded-[1.5rem] border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-teal-600"
-                      placeholder="Try: How should I learn TypeScript generics for my Next.js tutorial app?"
+                      placeholder="试试：我该怎么在我的 Next.js 教程项目里学习 TypeScript 泛型？"
                       data-learning-target="chat-input"
                     />
                     <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <p className="text-xs leading-6 text-stone-500">
-                        Tip: ask the same question twice after changing either the
-                        skill or the selected memory checkboxes.
+                        提示：改动 skill 或 memory 勾选项后，把同一个问题再问一次，更容易看出差异。
                       </p>
                       <button
                         type="submit"
                         disabled={isSending || !message.trim() || !activeSkill}
                         className="rounded-2xl bg-teal-700 px-5 py-3 text-sm font-semibold text-teal-50 transition hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-teal-300"
                       >
-                        {isSending ? "Thinking..." : "Send question"}
+                        {isSending ? "思考中..." : "发送问题"}
                       </button>
                     </div>
                   </form>
@@ -376,33 +373,33 @@ export function ChatInterface() {
                     data-learning-target="prompt-preview"
                   >
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-                      Learning checklist
+                      学习清单
                     </p>
                     <ol className="mt-3 space-y-3 text-sm leading-6 text-stone-700">
-                      <li>1. Save at least two memories in different categories.</li>
-                      <li>2. Turn one or two of them on with the checkboxes.</li>
-                      <li>3. Switch the skill preset and resend the same question.</li>
-                      <li>4. Compare the answer structure and the prompt preview.</li>
+                      <li>1. 先保存至少两条不同分类的 memory。</li>
+                      <li>2. 勾选其中一到两条，把它们注入到下一次回答。</li>
+                      <li>3. 切换 skill preset，并把同一个问题重新发送一次。</li>
+                      <li>4. 对比回答结构以及 prompt 预览里的变化。</li>
                     </ol>
                   </div>
 
                   <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-                      Prompt preview
+                      Prompt 预览
                     </p>
                     <pre className="mt-3 whitespace-pre-wrap break-words rounded-[1.25rem] bg-stone-900 p-4 text-xs leading-6 text-stone-100">
                       {latestResponse?.composedPrompt ??
-                        "Send a message to reveal the assembled prompt."}
+                        "发送一条消息后，这里会显示组装完成的 prompt。"}
                     </pre>
                   </div>
 
                   <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-                      Injected memory block
+                      注入的 Memory 区块
                     </p>
                     <pre className="mt-3 whitespace-pre-wrap break-words rounded-[1.25rem] bg-white p-4 text-xs leading-6 text-stone-700">
                       {latestResponse?.memoryContext ??
-                        "Select memories and send a message to inspect the memory block."}
+                        "先选择 memory 并发送消息，这里就会显示注入的记忆区块。"}
                     </pre>
                   </div>
                 </div>

@@ -57,7 +57,7 @@ export const learningScript: LearningScript = {
       beginner: {
         doThis:
           "添加一条学习者偏好或项目背景，并让它保持选中，供下一次请求注入。",
-        watchHere: "左侧的 Memory Panel。",
+        watchHere: "左侧的记忆面板。",
         notice:
           "新条目会出现在已保存列表里，并且可以被切换到下一次请求中。",
         whyItMatters:
@@ -66,7 +66,7 @@ export const learningScript: LearningScript = {
           "结构化 memory 指的是：背景信息会被保存成有名字的记录，并在需要时明确注入。",
       },
       advanced: {
-        trigger: "你在 Memory Panel 里新增一条 memory，并切换它是否参与下一次请求。",
+        trigger: "你在记忆面板里新增一条 memory，并切换它是否参与下一次请求。",
         visibleEffect: "memory 列表会立即更新，选中的 memory 会进入下一次 chat 请求的上下文。",
         internals:
           "`MemoryPanel` 负责收集和删除 memory，`ChatInterface` 用 `handleToggleMemory` 维护 selectedMemoryIds。提交时，`handleSubmit` 会把 message、selectedSkillId 和 selectedMemoryIds 组装成 `ChatRequestBody` 发送到 `/api/chat`，然后 `buildTeachingReply` 再把选中的 memory 体现在 prompt 预览里。",
@@ -119,7 +119,7 @@ export const learningScript: LearningScript = {
       beginner: {
         doThis:
           "在发送完全相同的问题之前，先对比 Teacher、Builder 和 Reviewer 三种模式。",
-        watchHere: "Skill Selector 里的卡片。",
+        watchHere: "Skill 选择器里的卡片。",
         notice:
           "同一时间只会有一个 preset 处于激活状态，而且每个 preset 都暴露出不同的 system prompt 姿态。",
         whyItMatters:
@@ -128,7 +128,7 @@ export const learningScript: LearningScript = {
           "skill preset 就是一种可复用的 system prompt 形态，用来定义一种工作模式。",
       },
       advanced: {
-        trigger: "你切换 Teacher、Builder 或 Reviewer，然后保持同一个问题重新发送。",
+        trigger: "你切换教学模式、构建模式或审阅模式，然后保持同一个问题重新发送。",
         visibleEffect: "右侧 transcript 和 prompt preview 会显示不同的回答结构，但 chat 表单还是同一套。",
         internals:
           "`SkillSelector` 只负责选中 skill id，`ChatInterface` 用 selectedSkillId 维护当前模式。提交时，`handleSubmit` 把它写入 `ChatRequestBody`，`app/api/chat/route.ts` 再调用 `getSkillPresetById` 把 id 解析成 `SkillPreset`。`buildTeachingReply` 负责把这个已解析的 selectedSkill 和 selectedMemories 组合成回复，而 `createSkillSpecificResponse` 只根据 selectedSkill.id 选择 teacher、builder 或 reviewer 的回答模板，不负责查找 preset。",
@@ -185,7 +185,7 @@ export const learningScript: LearningScript = {
       beginner: {
         doThis:
           "先问一次问题，然后只改 memory 或 skill，再把同一个问题重新发送一遍。",
-        watchHere: "“Ask the assistant”的输入框和发送按钮。",
+        watchHere: "“向助手提问”的输入框和发送按钮。",
         notice:
           "虽然最终 prompt 是由多个来源拼出来的，但界面上给你的输入仍然很简单。",
         whyItMatters:
@@ -287,7 +287,7 @@ export const learningScript: LearningScript = {
       beginner: {
         doThis:
           "每次回答后，都去看右侧调试卡片，把 prompt preview 和你刚才的 memory 选择对应起来。",
-        watchHere: "右侧的 Prompt preview 卡片。",
+        watchHere: "右侧的 Prompt 预览卡片。",
         notice:
           "你可以直接看到 system prompt 和被注入的 memory block，而不用靠猜来理解为什么回答变了。",
         whyItMatters:
@@ -296,7 +296,7 @@ export const learningScript: LearningScript = {
           "prompt 组装就是把系统指令、选中的 memory 和用户消息拼到一起的那一步。",
       },
       advanced: {
-        trigger: "你打开 Prompt preview，核对 memory block、system prompt 和用户消息的拼接顺序。",
+        trigger: "你打开 Prompt 预览，核对 memory block、system prompt 和用户消息的拼接顺序。",
         visibleEffect: "右侧卡片会显示完整的 composed prompt，让你看到每个输入最终去了哪里。",
         internals:
           "`buildTeachingReply` 先调用 `buildMemoryContext` 产出 memory block，再把 `selectedSkill.systemPrompt` 和用户消息拼成 `composedPrompt`。`ChatInterface` 的 `latestResponse` 再把这个结果映射到 Prompt preview 卡片，所以你能直接对照 `memory-panel` 的选择和最终输出。",

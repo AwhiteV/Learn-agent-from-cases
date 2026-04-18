@@ -19,9 +19,9 @@ interface MemoryPanelProps {
 }
 
 const categoryLabels: Record<MemoryEntry["category"], string> = {
-  preference: "Preference",
-  project: "Project",
-  goal: "Goal",
+  preference: "偏好",
+  project: "项目",
+  goal: "目标",
 };
 
 export function MemoryPanel({
@@ -62,34 +62,33 @@ export function MemoryPanel({
     >
       <div className="mb-4">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
-          Memory Panel
+          记忆面板
         </p>
         <h2 className="mt-2 text-2xl font-semibold text-stone-900">
-          Store learner context
+          保存学习者上下文
         </h2>
         <p className="mt-2 text-sm leading-6 text-stone-600">
-          Save preferences, project notes, or study goals. Then choose which
-          memories get injected into the next answer.
+          保存偏好、项目背景或学习目标，再决定哪些 memory 要被注入到下一次回答里。
         </p>
       </div>
 
       <form className="space-y-3 rounded-[1.5rem] bg-stone-100/80 p-4" onSubmit={handleSubmit}>
         <div>
           <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="memory-title">
-            Title
+            标题
           </label>
           <input
             id="memory-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             className="w-full rounded-2xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-amber-500"
-            placeholder="Example: Prefers concrete examples"
+            placeholder="例如：偏好具体例子"
           />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="memory-category">
-            Category
+            分类
           </label>
           <select
             id="memory-category"
@@ -97,22 +96,22 @@ export function MemoryPanel({
             onChange={(event) => setCategory(event.target.value as MemoryEntry["category"])}
             className="w-full rounded-2xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-amber-500"
           >
-            <option value="preference">Preference</option>
-            <option value="project">Project</option>
-            <option value="goal">Goal</option>
+            <option value="preference">偏好</option>
+            <option value="project">项目</option>
+            <option value="goal">目标</option>
           </select>
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="memory-content">
-            Content
+            内容
           </label>
           <textarea
             id="memory-content"
             value={content}
             onChange={(event) => setContent(event.target.value)}
             className="min-h-28 w-full rounded-2xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-amber-500"
-            placeholder="Example: Use examples from my Next.js tutorial app and keep explanations short."
+            placeholder="例如：请多用我的 Next.js 教程应用举例，并保持解释简短。"
           />
         </div>
 
@@ -121,23 +120,23 @@ export function MemoryPanel({
           disabled={isSaving}
           className="w-full rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-stone-50 transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-400"
         >
-          {isSaving ? "Saving..." : "Add memory"}
+          {isSaving ? "保存中..." : "添加记忆"}
         </button>
       </form>
 
       <div className="mt-5 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">
-            Stored memories
+            已保存的记忆
           </h3>
           <span className="text-xs text-stone-500">
-            {selectedMemoryIds.length} selected
+            已选中 {selectedMemoryIds.length} 条
           </span>
         </div>
 
         {memories.length === 0 ? (
           <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-500">
-            No memories yet. Add one above, then toggle it on to inject it.
+            还没有记忆。先在上面添加一条，再勾选它把它注入到下一次回答里。
           </div>
         ) : (
           <div className="space-y-3">
@@ -171,7 +170,7 @@ export function MemoryPanel({
                         {memory.content}
                       </p>
                       <p className="mt-2 text-xs text-stone-500">
-                        Added {new Date(memory.createdAt).toLocaleString()}
+                        添加于 {new Date(memory.createdAt).toLocaleString()}
                       </p>
                     </div>
                     <button
@@ -180,7 +179,7 @@ export function MemoryPanel({
                       disabled={deletingMemoryId === memory.id}
                       className="rounded-full border border-stone-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-stone-600 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {deletingMemoryId === memory.id ? "Deleting" : "Delete"}
+                      {deletingMemoryId === memory.id ? "删除中" : "删除"}
                     </button>
                   </div>
                 </div>

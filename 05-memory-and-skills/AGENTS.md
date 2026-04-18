@@ -66,6 +66,7 @@ corepack pnpm test
 - 如果你修改 memory 选择、skill 切换、`Prompt preview`、请求组装链路或 chat 响应拼装逻辑，必须同步检查 `实现视角` 里的文件、函数职责和数据流说明是否仍然准确。
 - If memory targets, skill targets, or learning steps change, update the script, tests, and docs in the same task.
 - 仓库面向中文学习者时，学习助手文案默认使用中文；除非明确要求双语，否则不要回退成英文。
+- 面向学习者的主界面文案也默认使用中文；不要只把学习助手抽屉翻成中文，而让主工作台、记忆面板、skill 面板和教学回复继续停留在英文。
 - `README.md` 应保持和前面章节一致的教学结构，至少包括“这一章解决什么问题”“这一章的 runnable case 是什么”“动手实践”“这一章对应的 Agent SDK 概念”“与 Proma 的映射”“学完这一章后你应该知道什么”等核心段落。
 - When you add files, update the key files section.
 - When you change commands, storage behavior, or the teaching goal, update both
