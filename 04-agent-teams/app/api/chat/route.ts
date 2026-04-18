@@ -234,6 +234,14 @@ interface ChatRequest {
   permissionMode?: string;
 }
 
+let rootEnvLoaded = false;
+
+function ensureRootEnvLoaded() {
+  if (rootEnvLoaded) return;
+  process.loadEnvFile(path.resolve(process.cwd(), '../.env.local'));
+  rootEnvLoaded = true;
+}
+
 /**
  * 安全地关闭 ReadableStream controller
  * 避免在 controller 已关闭时抛出错误
@@ -252,6 +260,7 @@ function safeCloseController(controller: ReadableStreamDefaultController): void 
 
 export async function POST(req: NextRequest) {
   try {
+    ensureRootEnvLoaded();
     const body: ChatRequest = await req.json();
     const { message, sessionId, permissionMode } = body;
 

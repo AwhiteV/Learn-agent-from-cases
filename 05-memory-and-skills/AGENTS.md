@@ -27,6 +27,12 @@ this chapter into a production memory platform.
 - `lib/skill-presets.ts`: `teacher`, `builder`, `reviewer` preset definitions
 - `lib/chat-engine.ts`: tutorial response composer that makes skill and memory effects visible
 - `lib/types.ts`: shared interfaces used by API routes and components
+- `tests/chat-engine.test.ts`: chat engine behavior tests
+- `tests/memory-store.test.ts`: memory store persistence tests
+
+- `components/learning-assistant.tsx`: in-page drawer and floating hint shell
+- `lib/learning-assistant-script.ts`: chapter-specific walkthrough content
+- `tests/learning-assistant-script.test.ts`: script contract and mounted target coverage
 
 ## Local Data Storage
 
@@ -55,6 +61,9 @@ corepack pnpm test
 
 - Any code change in this chapter must keep `05-memory-and-skills/AGENTS.md`
   and `05-memory-and-skills/README.md` in sync.
+- Keep the learning assistant script, `README.md`, and `AGENTS.md` in sync.
+- If memory targets, skill targets, or learning steps change, update the script, tests, and docs in the same task.
+- 仓库面向中文学习者时，学习助手文案默认使用中文；除非明确要求双语，否则不要回退成英文。
 - `README.md` 应保持和前面章节一致的教学结构，至少包括“这一章解决什么问题”“这一章的 runnable case 是什么”“动手实践”“这一章对应的 Agent SDK 概念”“与 Proma 的映射”“学完这一章后你应该知道什么”等核心段落。
 - When you add files, update the key files section.
 - When you change commands, storage behavior, or the teaching goal, update both

@@ -15,11 +15,13 @@
  * 4. 可扩展性：轻松添加工具调用、后台任务等功能
  */
 
+import path from 'node:path';
 import { NextRequest } from 'next/server';
 import { PromaAgent, type AgentEvent } from '@03-agent-with-permission/shared/agent';
 import type { ChatMessage } from '@03-agent-with-permission/core';
 import type { CanUseTool } from '@anthropic-ai/claude-agent-sdk';
 import { getStorage } from '@/lib/storage';
+import { getConfiguredModel } from '@/lib/model-config';
 import { addPending, resolvePending } from '@/lib/permission-store';
 
 /**
@@ -44,6 +46,14 @@ interface ChatRequest {
   permissionMode?: string;
 }
 
+let rootEnvLoaded = false;
+
+function ensureRootEnvLoaded() {
+  if (rootEnvLoaded) return;
+  process.loadEnvFile(path.resolve(process.cwd(), '../.env.local'));
+  rootEnvLoaded = true;
+}
+
 /**
  * 安全地关闭 ReadableStream controller
  * 避免在 controller 已关闭时抛出错误
@@ -62,6 +72,7 @@ function safeCloseController(controller: ReadableStreamDefaultController): void 
 
 export async function POST(req: NextRequest) {
   try {
+    ensureRootEnvLoaded();
     const body: ChatRequest = await req.json();
     const { message, sessionId, permissionMode } = body;
 
@@ -84,9 +95,11 @@ export async function POST(req: NextRequest) {
     // 初始化存储
     const storage = getStorage(process.cwd());
     await storage.initialize();
+    const model = getConfiguredModel(process.env.ANTHROPIC_MODEL);
 
     // 确定是否需要恢复会话
     const shouldResume = !!sessionId;
+    const projectRoot = path.resolve(process.cwd(), '..');
 
     // 创建 SSE 响应
     const encoder = new TextEncoder();
@@ -143,7 +156,9 @@ export async function POST(req: NextRequest) {
           const isBypass = permissionMode === 'bypassPermissions';
           const agent = new PromaAgent({
             apiKey,
+            model,
             workingDirectory: process.cwd(),
+            additionalDirectories: [projectRoot],
             resumeSessionId: sessionId,
             ...(!isBypass && { canUseTool }),
             ...(permissionMode && { permissionMode: permissionMode as 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan' }),
@@ -157,7 +172,7 @@ export async function POST(req: NextRequest) {
                   type: 'metadata',
                   sessionId: sdkSessionId,
                   config: {
-                    model: 'claude-sonnet-4-6',
+                    model,
                   },
                   state: {
                     sessionId: sdkSessionId,

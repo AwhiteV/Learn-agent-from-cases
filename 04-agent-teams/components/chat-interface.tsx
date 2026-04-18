@@ -10,7 +10,12 @@ import { SessionList } from './session-list';
 import { FileExplorer } from './file-explorer';
 import { MarkdownRenderer } from './markdown-renderer';
 import { LoadingIndicator } from './ui/loading-indicator';
-import { ToolActivityManager, type ToolActivity, type AgentActivityNode } from '@/lib/tool-activity';
+import {
+  buildActivityTree,
+  ToolActivityManager,
+  type ToolActivity,
+  type AgentActivityNode,
+} from '@/lib/tool-activity';
 import { AgentTeamStore, type TeammateState } from '@/lib/agent-team-store';
 import { PermissionSelector, type PermissionRequest } from './permission-selector';
 import { AgentTeamView } from './agent-team-view';
@@ -18,6 +23,7 @@ import { AgentTeamSplit } from './agent-team-split';
 import { AgentTaskList } from './agent-task-list';
 import type { AgentEvent } from '@04-agent-teams/shared/agent';
 import type { AgentTeamData } from '@/app/api/agent-teams/route';
+import { LearningAssistant } from './learning-assistant';
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -402,6 +408,7 @@ export function ChatInterface() {
         {/* Messages - Scrollable */}
         <div
           ref={scrollRef}
+          data-learning-target="message-list"
           className="flex-1 overflow-y-auto p-6"
         >
           <div className="mx-auto max-w-3xl space-y-4">
@@ -438,7 +445,8 @@ export function ChatInterface() {
                   endTime: toolMsg.timestamp,
                   result: toolMsg.toolResult,
                   error: toolMsg.toolStatus === 'failed' ? toolMsg.toolResult : undefined,
-                  depth: 0,
+                  parentId: toolMsg.parentToolUseId,
+                  depth: toolMsg.parentToolUseId ? 1 : 0,
                 }));
 
                 // 跳过独立的工具消息（已经在助手消息下显示）
@@ -454,7 +462,10 @@ export function ChatInterface() {
                       {/* 实时工具活动（当前正在执行） */}
                       {message.isStreaming && activityTree.length > 0 && (
                         <div className="flex justify-start mb-2">
-                          <Card className="w-[80%] p-3 bg-transparent border-border/50 shadow-none">
+                          <Card
+                            className="w-[80%] p-3 bg-transparent border-border/50 shadow-none"
+                            data-learning-target="agent-team-view"
+                          >
                             <AgentTeamView nodes={activityTree} />
                           </Card>
                         </div>
@@ -463,10 +474,11 @@ export function ChatInterface() {
                       {/* 历史工具活动（已完成） */}
                       {!message.isStreaming && historicalToolActivities.length > 0 && (
                         <div className="flex justify-start mb-2">
-                          <Card className="w-[80%] p-3 bg-transparent border-border/50 shadow-none">
-                            <AgentTeamView
-                              nodes={historicalToolActivities.map((a) => ({ activity: a, children: [] }))}
-                            />
+                          <Card
+                            className="w-[80%] p-3 bg-transparent border-border/50 shadow-none"
+                            data-learning-target="agent-team-view"
+                          >
+                            <AgentTeamView nodes={buildActivityTree(historicalToolActivities)} />
                           </Card>
                         </div>
                       )}
@@ -563,6 +575,7 @@ export function ChatInterface() {
                 placeholder="Type your message... (Ctrl+Enter to send)"
                 disabled={isStreaming}
                 className="min-h-[80px] max-h-[200px] resize-none"
+                data-learning-target="chat-input"
               />
               <div className="flex items-center justify-between mt-2">
                 <select
@@ -602,6 +615,7 @@ export function ChatInterface() {
 
       {/* Right Sidebar - File Explorer */}
       <FileExplorer />
+      <LearningAssistant />
     </div>
   );
 }

@@ -23,6 +23,7 @@
  * 这让我们的代码专注于业务逻辑，而非繁琐的状态管理！
  */
 
+import path from 'node:path';
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { NextRequest } from 'next/server';
 import type { ChatMessage } from '@01-quick-start/core';
@@ -33,8 +34,17 @@ interface ChatRequest {
   sessionId?: string;
 }
 
+let rootEnvLoaded = false;
+
+function ensureRootEnvLoaded() {
+  if (rootEnvLoaded) return;
+  process.loadEnvFile(path.resolve(process.cwd(), '../.env.local'));
+  rootEnvLoaded = true;
+}
+
 export async function POST(req: NextRequest) {
   try {
+    ensureRootEnvLoaded();
     const body: ChatRequest = await req.json();
     const { message, sessionId } = body;
 

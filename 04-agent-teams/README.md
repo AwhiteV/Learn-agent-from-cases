@@ -5,14 +5,18 @@
 ## 快速开始
 
 ```bash
+cp ../.env.local.example ../.env.local
+# 在仓库根目录的 .env.local 中填写 ANTHROPIC_API_KEY
 cd 04-agent-teams
 pnpm install
-cp .env.local.example .env.local
-# 在 .env.local 中填写 ANTHROPIC_API_KEY
 pnpm dev
 ```
 
+默认情况下，本章会自动复用仓库根目录的 `.env.local`；只有当你想为本章单独覆盖配置时，才需要在 `04-agent-teams/` 目录里额外放一个 `.env.local`。
+
 打开 [http://localhost:3000](http://localhost:3000)。
+
+页面右下角新增了“学习助手”抽屉入口，会引导你按顺序观察任务拆解、team 活动视图、任务列表、resume 汇总过程和最终综合回答。
 
 ## 这一章解决什么问题
 

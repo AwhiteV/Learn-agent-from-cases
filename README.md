@@ -145,9 +145,11 @@
 如果你想先跑 Web 版教程：
 
 ```bash
+cp .env.local.example .env.local
+# 在仓库根目录填写一次 ANTHROPIC_API_KEY
+# 如需切换支持该配置的章节默认模型，可额外填写 ANTHROPIC_MODEL
 cd 01-quick-start
 pnpm install
-cp .env.local.example .env.local
 pnpm dev
 ```
 
@@ -160,7 +162,7 @@ cp .env.example .env.local
 pnpm play
 ```
 
-每个章节自己的 README 会继续说明该章的环境变量、启动方式和建议实验步骤。
+`01` 到 `04` 章节会默认复用仓库根目录的 `.env.local`，所以不需要每学一章都重新复制一次环境变量文件；如果某一章确实需要单独覆盖，也仍然可以在该章节目录下放自己的 `.env.local`。每个章节自己的 README 会继续说明该章的启动方式和建议实验步骤。
 
 ## 仓库结构
 

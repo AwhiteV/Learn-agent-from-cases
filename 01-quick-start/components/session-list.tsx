@@ -77,6 +77,7 @@ export function SessionList({ currentSessionId, onSessionSelect, onNewChat, refr
           className="w-full"
           variant="default"
           size="sm"
+          data-learning-target="new-chat-button"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Chat

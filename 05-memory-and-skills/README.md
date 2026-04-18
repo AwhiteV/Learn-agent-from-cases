@@ -39,6 +39,8 @@ corepack pnpm dev
 
 它不是一个“背后藏着很多魔法”的黑盒，而是一个可观察的教学工作台。
 
+页面右下角现在还提供了一个“学习助手”浮层入口，会按章节步骤提示你先存 memory、再切 skill、再观察 transcript 和 prompt preview，方便第一次跑 case 的学习者不迷路。
+
 ## 动手实践：你应该点什么 / 输入什么 / 观察什么
 
 推荐你按下面的顺序做：
@@ -88,6 +90,7 @@ corepack pnpm dev
 
 - `app/page.tsx`：页面入口，挂载教学工作台
 - `components/chat-interface.tsx`：组合 Memory Panel、Skill Selector 和响应调试视图
+- `components/learning-assistant.tsx`：页面内抽屉式学习助手
 - `components/memory-panel.tsx`：管理 memory 列表、添加表单、注入开关和删除操作
 - `components/skill-selector.tsx`：切换 skill preset
 - `app/api/memory/route.ts`：读取、写入和删除 memory
@@ -96,6 +99,7 @@ corepack pnpm dev
 - `lib/memory-store.ts`：`.data` 下的本地 JSON 持久化
 - `lib/skill-presets.ts`：Teacher / Builder / Reviewer 三个模式定义
 - `lib/chat-engine.ts`：教学用响应生成逻辑
+- `lib/learning-assistant-script.ts`：章节学习助手的步骤脚本
 
 ## 学完这一章后你应该知道什么
 

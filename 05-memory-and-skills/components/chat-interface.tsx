@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { MemoryPanel } from "@/components/memory-panel";
+import { LearningAssistant } from "@/components/learning-assistant";
 import { SkillSelector } from "@/components/skill-selector";
 import type {
   ChatRequestBody,
@@ -310,7 +311,7 @@ export function ChatInterface() {
 
               <div className="mt-5 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
                 <div>
-                  <div className="space-y-4">
+                  <div className="space-y-4" data-learning-target="transcript-panel">
                     {isLoading ? (
                       <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-500">
                         Loading the chapter data...
@@ -351,6 +352,7 @@ export function ChatInterface() {
                       onChange={(event) => setMessage(event.target.value)}
                       className="min-h-32 w-full rounded-[1.5rem] border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-teal-600"
                       placeholder="Try: How should I learn TypeScript generics for my Next.js tutorial app?"
+                      data-learning-target="chat-input"
                     />
                     <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <p className="text-xs leading-6 text-stone-500">
@@ -369,7 +371,10 @@ export function ChatInterface() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+                  <div
+                    className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4"
+                    data-learning-target="prompt-preview"
+                  >
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
                       Learning checklist
                     </p>
@@ -406,6 +411,7 @@ export function ChatInterface() {
           </div>
         </div>
       </div>
+      <LearningAssistant />
     </div>
   );
 }

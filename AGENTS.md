@@ -63,6 +63,7 @@ pnpm lint     # Run ESLint
 
 1. **根目录文件变化** → 必须更新根目录的 `AGENTS.md`
    - 添加/删除配置文件(.gitignore, .npmrc, tsconfig.json 等)
+   - 添加/修改根目录环境变量示例文件（如 `.env.local.example`）
    - 添加/修改根目录许可证文件（如 `LICENSE`）
    - 修改项目结构(添加新的教程目录等)
    - 更新依赖或工具链
@@ -123,11 +124,15 @@ pnpm lint     # Run ESLint
 - 当根目录教程路线、章节结构或新增教程目录发生变化时，需要同步更新这里的设计文档或新增对应 spec
 - 如果新增章节涉及新的教学定位，需确保 spec、根 README 与根 AGENTS.md 三者描述一致
 - 如果同一份教程扩展 spec 同时存在英文版和中文版，两个版本必须保持同步更新；修改任一版本时，都要检查另一版本是否需要同步，避免维护责任不清或内容漂移
+- 当前仓库已新增章节内学习引导设计 spec：`2026-04-18-chapter-learning-assistant-design.md` 与 `2026-04-18-chapter-learning-assistant-design.zh-CN.md`，后续如果实现页面内浮层/抽屉式学习助手，相关章节 README、实现代码与对应 `AGENTS.md` 必须一起维护
 
 ### Tutorial Expansion Plans
 - `docs/superpowers/plans/` 用于存放多步骤教程升级任务的执行计划
 - 当一次改动同时涉及多个章节、根文档与新教程目录时，应先补充 plan 再开始实现
 - plan 中的目录结构、验证命令与最终落地文件应保持一致，避免执行过程中产生文档漂移
+- 当前仓库已新增章节学习助手 implementation plan：`2026-04-18-chapter-learning-assistant.md`，后续若调整章节内浮层/抽屉式学习助手的落地范围、验证命令或目标文件，需要同步更新该 plan
+- 当前仓库已新增章节学习助手手动测试文档：`2026-04-18-chapter-learning-assistant-manual-test-plan.md`，后续若调整章节学习助手的交互、观察点或验收标准，需要同步更新这份手动测试计划
+- 当前仓库已新增 03 章节权限排查总结：`2026-04-18-chapter-03-permission-debug-summary.md`，后续如果再调整 03 章节的权限审批链路、模型配置、工作区范围或 SDK 兼容策略，需要同步更新这份排障文档，避免重复踩坑
 
 ### Key Files
 - `app/layout.tsx`: Root layout with Geist font configuration
@@ -135,6 +140,7 @@ pnpm lint     # Run ESLint
 - `app/globals.css`: Global Tailwind styles
 - `next.config.ts`: Next.js configuration
 - `tsconfig.json`: TypeScript configuration with strict mode
+- `.env.local.example`: 仓库级共享环境变量模板，默认供 `01` 到 `04` 章节复用
 
 ## Common Patterns
 

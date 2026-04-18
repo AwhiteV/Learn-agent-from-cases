@@ -83,6 +83,10 @@ export class PromaAgent {
       allowDangerouslySkipPermissions: true,
     };
 
+    if (this.config.model) {
+      queryOptions.model = this.config.model;
+    }
+
     // 如果提供了会话 ID，则添加恢复选项
     if (this.config.resumeSessionId) {
       queryOptions.resume = this.config.resumeSessionId;

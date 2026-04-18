@@ -105,7 +105,10 @@ export function FileExplorer({ initialPath = '' }: FileExplorerProps) {
   };
 
   return (
-    <div className="flex h-full w-80 flex-col border-l bg-muted/10">
+    <div
+      className="flex h-full w-80 flex-col border-l bg-muted/10"
+      data-learning-target="file-explorer"
+    >
       <div className="p-4">
         <h2 className="text-lg font-semibold">Workspace Files</h2>
         <p className="text-xs text-muted-foreground">

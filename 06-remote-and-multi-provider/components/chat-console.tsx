@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 
 import { ProviderInspector } from "@/components/provider-inspector";
+import { LearningAssistant } from "@/components/learning-assistant";
 import { ProviderSwitcher } from "@/components/provider-switcher";
 import type { ChatRequestBody, ChatResponseBody, ProviderSummary } from "@/lib/types";
 
@@ -173,6 +174,7 @@ export function ChatConsole({
             onChange={(event) => setMessage(event.target.value)}
             placeholder="Ask the same task in each provider mode."
             value={message}
+            data-learning-target="chat-input"
           />
 
           <div className="mt-4 rounded-[1.3rem] border border-[var(--border)] bg-stone-950 px-4 py-4 text-sm leading-7 text-stone-100">
@@ -220,7 +222,7 @@ ${JSON.stringify(
           </div>
         </form>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4" data-learning-target="transcript-panel">
           {transcript.length === 0 ? (
             <div className="rounded-[1.6rem] border border-dashed border-[var(--border)] bg-white/55 px-5 py-6 text-sm leading-7 text-stone-600">
               No transcript yet. Send one task with the local provider, switch to
@@ -266,6 +268,7 @@ ${JSON.stringify(
           )}
         </div>
       </section>
+      <LearningAssistant />
     </div>
   );
 }

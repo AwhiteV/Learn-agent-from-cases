@@ -5,12 +5,14 @@
 ## 快速开始
 
 ```bash
+cp ../.env.local.example ../.env.local
+# 在仓库根目录的 .env.local 中填写 ANTHROPIC_API_KEY
 cd 01-quick-start
 pnpm install
-cp .env.local.example .env.local
-# 在 .env.local 中填写 ANTHROPIC_API_KEY
 pnpm dev
 ```
+
+默认情况下，本章会自动复用仓库根目录的 `.env.local`；只有当你想为本章单独覆盖配置时，才需要在 `01-quick-start/` 目录里额外放一个 `.env.local`。
 
 打开 [http://localhost:3000](http://localhost:3000)。
 
@@ -38,6 +40,8 @@ pnpm dev
 
 ## 动手实践：你应该点什么 / 输入什么 / 观察什么
 
+现在章节页面里也会带一个“学习助手”抽屉。你可以按抽屉里的步骤顺序操作，也可以把它当成运行时版的观察清单：先做动作，再对照“看哪里 / 会看到什么 / 这说明什么”来理解 session、streaming 和 workspace。遇到抽屉挡住目标区域时，先临时关闭它观察页面，再用右下角入口重新打开即可。
+
 推荐按这个路线探索：
 
 1. 第一次打开页面后，直接输入 `请介绍一下这个项目目录里可能有什么内容`。
@@ -55,10 +59,19 @@ pnpm dev
 5. 再点回刚才那条历史会话。
    观察什么：旧消息从 `.data/sessions/*.jsonl` 读回来了，说明这是“恢复工作流”，不是单纯刷新页面。
 
-6. 看右侧文件浏览区，切换几个目录或文件。
-   观察什么：workspace 在这里不是抽象概念，而是 Agent 工作时默认面对的文件系统范围。
+6. 看右侧文件浏览区，点开一个文件看看预览内容，并观察目录与文件是如何被呈现的。
+   观察什么：workspace 在这里不是抽象概念，而是 Agent 工作时默认面对的文件系统范围；文件预览则让这个工作范围更具体可见。
 
 进入 Web 版 Agent 应用后的推荐探索路线是：先发一轮消息感受 streaming，再看左侧 session 列表如何刷新，最后再去右侧理解 workspace 与文件系统的关系。这样最不容易把 UI、状态和持久化混在一起。
+
+## 验证命令
+
+```bash
+cd 01-quick-start
+pnpm test
+pnpm lint
+pnpm build
+```
 
 ## 这一章对应的 Agent SDK 概念
 

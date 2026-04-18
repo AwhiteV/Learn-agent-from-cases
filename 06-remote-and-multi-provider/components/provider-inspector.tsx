@@ -34,7 +34,10 @@ export function ProviderInspector({
       : [];
 
   return (
-    <section className="rounded-[2rem] border border-[var(--border)] bg-[var(--panel-strong)] p-6 shadow-[0_18px_50px_rgba(40,31,18,0.08)]">
+    <section
+      className="rounded-[2rem] border border-[var(--border)] bg-[var(--panel-strong)] p-6 shadow-[0_18px_50px_rgba(40,31,18,0.08)]"
+      data-learning-target="provider-inspector"
+    >
       <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-500">
         Provider Inspector
       </p>

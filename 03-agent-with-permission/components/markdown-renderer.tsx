@@ -1,5 +1,6 @@
 'use client';
 
+import { isValidElement, type ReactElement } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -9,29 +10,45 @@ interface MarkdownRendererProps {
   content: string;
 }
 
+function getCodeClassName(node: unknown): string {
+  if (!isValidElement(node)) return '';
+  const element = node as ReactElement<{ className?: string }>;
+  return typeof element.props.className === 'string' ? element.props.className : '';
+}
+
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       rehypePlugins={[rehypeHighlight, rehypeRaw]}
       components={{
-        // 代码块
-        code({ className, children, ...props }: any) {
-          const match = /language-(\w+)/.exec(className || '');
-          const inline = !match;
-          return !inline ? (
+        pre({ children }) {
+          const firstChild = Array.isArray(children) ? children[0] : children;
+          const className = getCodeClassName(firstChild);
+          const match = /language-(\w+)/.exec(className);
+
+          return (
             <div className="my-4 overflow-hidden rounded-lg border bg-muted">
               <div className="flex items-center justify-between border-b bg-muted px-4 py-2">
                 <span className="text-xs font-medium text-muted-foreground">
-                  {match ? match[1] : 'code'}
+                  {match ? match[1] : 'text'}
                 </span>
               </div>
-              <pre className="overflow-x-auto p-4">
-                <code className={className} {...props}>
-                  {children}
-                </code>
+              <pre className="overflow-x-auto bg-[#0d1117] p-4 text-sm text-slate-100">
+                {children}
               </pre>
             </div>
+          );
+        },
+        // 代码块
+        code({ className, children, ...props }: any) {
+          const isBlockCode =
+            Boolean(className) || String(children).includes('\n');
+
+          return isBlockCode ? (
+            <code className={className} {...props}>
+              {children}
+            </code>
           ) : (
             <code
               className="rounded bg-muted px-1.5 py-0.5 text-sm font-mono"

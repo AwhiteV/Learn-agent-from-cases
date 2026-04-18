@@ -56,7 +56,10 @@ export function MemoryPanel({
   }
 
   return (
-    <section className="rounded-[2rem] border border-stone-300/70 bg-white/85 p-5 shadow-[0_18px_60px_rgba(63,43,27,0.08)] backdrop-blur">
+    <section
+      className="rounded-[2rem] border border-stone-300/70 bg-white/85 p-5 shadow-[0_18px_60px_rgba(63,43,27,0.08)] backdrop-blur"
+      data-learning-target="memory-panel"
+    >
       <div className="mb-4">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
           Memory Panel

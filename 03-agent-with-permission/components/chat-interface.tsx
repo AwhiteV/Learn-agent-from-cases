@@ -14,6 +14,8 @@ import { ToolActivityList } from './tool-activity-list';
 import { ToolActivityManager, type ToolActivity } from '@/lib/tool-activity';
 import { PermissionSelector, type PermissionRequest } from './permission-selector';
 import type { AgentEvent } from '@03-agent-with-permission/shared/agent';
+import type { PermissionUpdate } from '@anthropic-ai/claude-agent-sdk';
+import { LearningAssistant } from './learning-assistant';
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -106,14 +108,15 @@ export function ChatInterface() {
     behavior: 'allow' | 'deny',
     message?: string,
     updatedInput?: Record<string, unknown>,
-    updatedPermissions?: unknown[],
+    updatedPermissions?: PermissionUpdate[],
   ) => {
     setPermissionQueue(prev => prev.filter(r => r.requestId !== requestId));
-    await fetch('/api/chat/permission', {
+    const response = await fetch('/api/chat/permission', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requestId, behavior, message, updatedInput, updatedPermissions }),
     });
+    await response.json();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -301,7 +304,7 @@ export function ChatInterface() {
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header - Fixed */}
         <div className="shrink-0 border-b bg-background px-6 py-4">
-          <h1 className="text-2xl font-semibold">Claude Agent SDK - Quick Start</h1>
+          <h1 className="text-2xl font-semibold">Claude Agent SDK - Agent With Permission</h1>
           {sessionId && (
             <p className="text-sm text-muted-foreground">Session: {sessionId}</p>
           )}
@@ -310,6 +313,7 @@ export function ChatInterface() {
         {/* Messages - Scrollable */}
         <div
           ref={scrollRef}
+          data-learning-target="message-list"
           className="flex-1 overflow-y-auto p-6"
         >
           <div className="mx-auto max-w-3xl space-y-4">
@@ -362,7 +366,10 @@ export function ChatInterface() {
                       {/* 实时工具活动（当前正在执行） */}
                       {message.isStreaming && toolActivities.length > 0 && (
                         <div className="flex justify-start mb-2">
-                          <Card className="w-[80%] p-3 bg-transparent border-border/50 shadow-none">
+                          <Card
+                            className="w-[80%] p-3 bg-transparent border-border/50 shadow-none"
+                            data-learning-target="tool-activity-panel"
+                          >
                             <ToolActivityList
                               activities={toolActivities}
                               showDuration
@@ -375,7 +382,10 @@ export function ChatInterface() {
                       {/* 历史工具活动（已完成） */}
                       {!message.isStreaming && historicalToolActivities.length > 0 && (
                         <div className="flex justify-start mb-2">
-                          <Card className="w-[80%] p-3 bg-transparent border-border/50 shadow-none">
+                          <Card
+                            className="w-[80%] p-3 bg-transparent border-border/50 shadow-none"
+                            data-learning-target="tool-activity-panel"
+                          >
                             <ToolActivityList
                               activities={historicalToolActivities}
                               showDuration
@@ -460,6 +470,7 @@ export function ChatInterface() {
                 placeholder="Type your message... (Ctrl+Enter to send)"
                 disabled={isStreaming}
                 className="min-h-[80px] max-h-[200px] resize-none"
+                data-learning-target="chat-input"
               />
               <div className="flex items-center justify-between mt-2">
                 <select
@@ -467,6 +478,7 @@ export function ChatInterface() {
                   onChange={(e) => setPermissionMode(e.target.value)}
                   disabled={isStreaming}
                   className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                  data-learning-target="permission-mode-select"
                 >
                   <option value="default">default</option>
                   <option value="acceptEdits">acceptEdits</option>
@@ -499,6 +511,7 @@ export function ChatInterface() {
 
       {/* Right Sidebar - File Explorer */}
       <FileExplorer />
+      <LearningAssistant />
     </div>
   );
 }

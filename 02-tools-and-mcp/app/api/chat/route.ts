@@ -15,10 +15,12 @@
  * 4. 可扩展性：轻松添加工具调用、后台任务等功能
  */
 
+import path from 'node:path';
 import { NextRequest } from 'next/server';
 import { PromaAgent, type AgentEvent } from '@02-tools-and-mcp/shared/agent';
 import type { ChatMessage } from '@02-tools-and-mcp/core';
 import { getStorage } from '@/lib/storage';
+import { getConfiguredModel } from '@/lib/model-config';
 
 /**
  * 工具活动临时存储（用于最终保存到消息中）
@@ -41,6 +43,14 @@ interface ChatRequest {
   sessionId?: string;
 }
 
+let rootEnvLoaded = false;
+
+function ensureRootEnvLoaded() {
+  if (rootEnvLoaded) return;
+  process.loadEnvFile(path.resolve(process.cwd(), '../.env.local'));
+  rootEnvLoaded = true;
+}
+
 /**
  * 安全地关闭 ReadableStream controller
  * 避免在 controller 已关闭时抛出错误
@@ -59,6 +69,7 @@ function safeCloseController(controller: ReadableStreamDefaultController): void 
 
 export async function POST(req: NextRequest) {
   try {
+    ensureRootEnvLoaded();
     const body: ChatRequest = await req.json();
     const { message, sessionId } = body;
 
@@ -81,6 +92,7 @@ export async function POST(req: NextRequest) {
     // 初始化存储
     const storage = getStorage(process.cwd());
     await storage.initialize();
+    const model = getConfiguredModel(process.env.ANTHROPIC_MODEL);
 
     // 确定是否需要恢复会话
     const shouldResume = !!sessionId;
@@ -105,6 +117,7 @@ export async function POST(req: NextRequest) {
           // 创建 PromaAgent 实例
           const agent = new PromaAgent({
             apiKey,
+            model,
             workingDirectory: process.cwd(),
             resumeSessionId: sessionId,
             onSessionIdUpdate: async (sdkSessionId) => {
@@ -117,7 +130,7 @@ export async function POST(req: NextRequest) {
                   type: 'metadata',
                   sessionId: sdkSessionId,
                   config: {
-                    model: 'claude-sonnet-4-6',
+                    model,
                   },
                   state: {
                     sessionId: sdkSessionId,

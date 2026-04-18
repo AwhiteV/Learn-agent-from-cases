@@ -13,6 +13,7 @@ import { LoadingIndicator } from './ui/loading-indicator';
 import { ToolActivityList } from './tool-activity-list';
 import { ToolActivityManager, type ToolActivity } from '@/lib/tool-activity';
 import type { AgentEvent } from '@02-tools-and-mcp/shared/agent';
+import { LearningAssistant } from './learning-assistant';
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -286,6 +287,7 @@ export function ChatInterface() {
         {/* Messages - Scrollable */}
         <div
           ref={scrollRef}
+          data-learning-target="message-list"
           className="flex-1 overflow-y-auto p-6"
         >
           <div className="mx-auto max-w-3xl space-y-4">
@@ -338,7 +340,10 @@ export function ChatInterface() {
                       {/* 实时工具活动（当前正在执行） */}
                       {message.isStreaming && toolActivities.length > 0 && (
                         <div className="flex justify-start mb-2">
-                          <Card className="w-[80%] p-3 bg-transparent border-border/50 shadow-none">
+                          <Card
+                            className="w-[80%] p-3 bg-transparent border-border/50 shadow-none"
+                            data-learning-target="tool-activity-list"
+                          >
                             <ToolActivityList
                               activities={toolActivities}
                               showDuration
@@ -351,7 +356,10 @@ export function ChatInterface() {
                       {/* 历史工具活动（已完成） */}
                       {!message.isStreaming && historicalToolActivities.length > 0 && (
                         <div className="flex justify-start mb-2">
-                          <Card className="w-[80%] p-3 bg-transparent border-border/50 shadow-none">
+                          <Card
+                            className="w-[80%] p-3 bg-transparent border-border/50 shadow-none"
+                            data-learning-target="tool-activity-list"
+                          >
                             <ToolActivityList
                               activities={historicalToolActivities}
                               showDuration
@@ -422,6 +430,7 @@ export function ChatInterface() {
                 placeholder="Type your message..."
                 disabled={isStreaming}
                 className="flex-1"
+                data-learning-target="chat-input"
               />
               {isStreaming ? (
                 <Button
@@ -448,6 +457,7 @@ export function ChatInterface() {
 
       {/* Right Sidebar - File Explorer */}
       <FileExplorer />
+      <LearningAssistant />
     </div>
   );
 }

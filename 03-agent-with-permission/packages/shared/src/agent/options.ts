@@ -12,6 +12,8 @@ import type { Options, McpServerConfig } from '@anthropic-ai/claude-agent-sdk';
 export interface ToolOptions {
   /** 工作目录 */
   workingDirectory: string;
+  /** 额外可访问目录 */
+  additionalDirectories?: string[];
   /** 是否使用完整的默认工具集（默认 true） */
   useFullToolSet?: boolean;
   /** 额外的 MCP 服务器 */
@@ -27,7 +29,12 @@ export interface ToolOptions {
  * - 基础环境变量
  */
 export function getDefaultOptions(options: ToolOptions): Partial<Options> {
-  const { workingDirectory, useFullToolSet = true, mcpServers = {} } = options;
+  const {
+    workingDirectory,
+    additionalDirectories,
+    useFullToolSet = true,
+    mcpServers = {},
+  } = options;
 
   // 默认工具配置
   const tools: Options['tools'] = useFullToolSet
@@ -45,6 +52,7 @@ export function getDefaultOptions(options: ToolOptions): Partial<Options> {
   const sdkOptions: Partial<Options> = {
     tools,
     cwd: workingDirectory,
+    additionalDirectories,
     mcpServers: Object.keys(mcpServers).length > 0 ? mcpServers : undefined,
   };
 
@@ -100,4 +108,3 @@ export function createStdioMcpServer(
 
 // Re-export SDK's McpServerConfig for convenience
 export type { McpServerConfig } from '@anthropic-ai/claude-agent-sdk';
-

@@ -5,14 +5,19 @@
 ## 快速开始
 
 ```bash
+cp ../.env.local.example ../.env.local
+# 在仓库根目录的 .env.local 中填写 ANTHROPIC_API_KEY
+# 如需切换模型，可额外配置 ANTHROPIC_MODEL，例如 claude-sonnet-4-6
 cd 02-tools-and-mcp
 pnpm install
-cp .env.local.example .env.local
-# 在 .env.local 中填写 ANTHROPIC_API_KEY
 pnpm dev
 ```
 
+默认情况下，本章会自动复用仓库根目录的 `.env.local`；只有当你想为本章单独覆盖配置时，才需要在 `02-tools-and-mcp/` 目录里额外放一个 `.env.local`。
+
 打开 [http://localhost:3000](http://localhost:3000)。
+
+页面右下角新增了“学习助手”抽屉入口，会按本章的工具调用与 MCP 重点，引导你依次观察真实仓库检查请求、工具活动列表、最终回答与会话对比。
 
 ## 这一章解决什么问题
 
@@ -33,6 +38,7 @@ pnpm dev
 - `PromaAgent` 事件驱动封装，把底层 SDK 消息转换为更稳定的 `AgentEvent`
 - 工具调用过程的实时展示，包括开始、执行中、完成、失败等状态
 - 代码层的 MCP 服务器配置能力，允许在默认工具集之外继续并入 MCP 工具
+- 通过仓库根目录 `.env.local` 里的 `ANTHROPIC_MODEL` 切换本章默认模型
 
 你运行后看到的，已经不是单纯的“Claude 回答区”，而是一个能展示 Agent 行动轨迹的界面。
 

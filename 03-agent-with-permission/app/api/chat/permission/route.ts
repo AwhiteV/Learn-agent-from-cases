@@ -1,4 +1,6 @@
 import { NextRequest } from 'next/server';
+import type { PermissionUpdate } from '@anthropic-ai/claude-agent-sdk';
+import { createPermissionResult } from '@/lib/permission-result';
 import { resolvePending } from '@/lib/permission-store';
 
 interface PermissionDecision {
@@ -6,7 +8,7 @@ interface PermissionDecision {
   behavior: 'allow' | 'deny';
   message?: string;
   updatedInput?: Record<string, unknown>;
-  updatedPermissions?: unknown[];
+  updatedPermissions?: PermissionUpdate[];
 }
 
 export async function POST(req: NextRequest) {
@@ -20,9 +22,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const result = behavior === 'allow'
-    ? { behavior: 'allow' as const, updatedInput, updatedPermissions }
-    : { behavior: 'deny' as const, message: message || 'User denied permission' };
+  const result = createPermissionResult({
+    behavior,
+    message,
+    updatedInput,
+    updatedPermissions,
+  });
 
   const resolved = resolvePending(requestId, result);
 

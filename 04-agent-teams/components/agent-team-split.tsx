@@ -605,7 +605,10 @@ export function AgentTeamSplit({ teammates, members, inboxes, className }: Agent
   const doneCount = teammates.filter((t) => t.status !== 'running').length;
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div
+      className={cn('space-y-2', className)}
+      data-learning-target="teammate-split"
+    >
       {/* 标题栏 */}
       <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
         <Brain className="h-3.5 w-3.5 text-violet-500" />

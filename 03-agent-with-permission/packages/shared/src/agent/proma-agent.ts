@@ -32,6 +32,8 @@ export interface PromaAgentConfig {
   model?: string;
   /** 文件操作的工作目录 */
   workingDirectory: string;
+  /** 额外可访问目录 */
+  additionalDirectories?: string[];
   /** 要恢复的会话 ID（可选） */
   resumeSessionId?: string;
   /** 当会话 ID 确定时的回调 */
@@ -75,6 +77,7 @@ export class PromaAgent {
     // 获取默认工具配置
     const defaultOptions = getDefaultOptions({
       workingDirectory: this.config.workingDirectory,
+      additionalDirectories: this.config.additionalDirectories,
       useFullToolSet: this.config.useFullToolSet,
       mcpServers: this.config.mcpServers,
     });
@@ -88,6 +91,7 @@ export class PromaAgent {
     const queryOptions: Record<string, unknown> = {
       ...defaultOptions,
       includePartialMessages: true,
+      ...(this.config.model && { model: this.config.model }),
       permissionMode,
       ...(permissionMode === 'bypassPermissions' && { allowDangerouslySkipPermissions: true }),
       ...(hasCanUseTool && { canUseTool: this.config.canUseTool }),

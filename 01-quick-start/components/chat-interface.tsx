@@ -8,6 +8,7 @@ import { Send } from 'lucide-react';
 import type { ChatMessage } from '@01-quick-start/core';
 import { SessionList } from './session-list';
 import { FileExplorer } from './file-explorer';
+import { LearningAssistant } from './learning-assistant';
 import { MarkdownRenderer } from './markdown-renderer';
 
 export function ChatInterface() {
@@ -171,13 +172,17 @@ export function ChatInterface() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <LearningAssistant />
+
       {/* Left Sidebar - Session List */}
-      <SessionList
-        currentSessionId={sessionId}
-        onSessionSelect={loadSession}
-        onNewChat={handleNewChat}
-        refreshTrigger={refreshTrigger}
-      />
+      <div data-learning-target="session-list">
+        <SessionList
+          currentSessionId={sessionId}
+          onSessionSelect={loadSession}
+          onNewChat={handleNewChat}
+          refreshTrigger={refreshTrigger}
+        />
+      </div>
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -193,6 +198,7 @@ export function ChatInterface() {
         <div
           ref={scrollRef}
           className="flex-1 overflow-y-auto p-6"
+          data-learning-target="message-list"
         >
           <div className="mx-auto max-w-3xl space-y-4">
             {messages.length === 0 ? (
@@ -245,6 +251,7 @@ export function ChatInterface() {
                 placeholder="Type your message..."
                 disabled={isStreaming}
                 className="flex-1"
+                data-learning-target="chat-input"
               />
               <Button type="submit" disabled={!input.trim() || isStreaming}>
                 <Send className="h-4 w-4" />
@@ -255,7 +262,9 @@ export function ChatInterface() {
       </div>
 
       {/* Right Sidebar - File Explorer */}
-      <FileExplorer />
+      <aside data-learning-target="file-explorer">
+        <FileExplorer />
+      </aside>
     </div>
   );
 }

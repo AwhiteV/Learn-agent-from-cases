@@ -273,7 +273,10 @@ export function AgentTaskList({ teamName, team, tasks, inboxes, className }: Age
   });
 
   return (
-    <div className={cn('rounded-lg border border-border/50 bg-background/60 p-3 space-y-2', className)}>
+    <div
+      className={cn('rounded-lg border border-border/50 bg-background/60 p-3 space-y-2', className)}
+      data-learning-target="agent-task-list"
+    >
       {/* 标题行 */}
       <div className="flex items-center gap-2">
         <button

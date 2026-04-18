@@ -32,6 +32,8 @@ corepack pnpm dev
 
 学习者看到的重点不是“系统有多复杂”，而是“什么在变，什么不该变”。
 
+为了降低第一次体验这章时的理解门槛，页面右下角也提供了一个“学习助手”浮层入口，会引导你先切 provider、再发送同一请求、再去观察 stable abstraction 和 transcript 差异。
+
 ## remote agent 与 provider abstraction 的核心概念
 
 ### 1. Provider abstraction
@@ -122,6 +124,7 @@ export interface AgentProvider {
 
 - `app/page.tsx`：章节入口，解释 runnable case 和学习路径
 - `components/chat-console.tsx`：主工作台，组合 provider 切换、请求发送和 transcript
+- `components/learning-assistant.tsx`：页面内抽屉式学习助手
 - `components/provider-switcher.tsx`：切换不同 provider 配置
 - `components/provider-inspector.tsx`：显示当前 provider、执行模式、稳定抽象和 provider notes
 - `app/api/chat/route.ts`：统一接收 `message + providerId` 并分发到选中的 provider
@@ -130,6 +133,7 @@ export interface AgentProvider {
 - `lib/providers/local-agent.ts`：本地 provider 实现
 - `lib/providers/mock-remote.ts`：remote-style provider 实现
 - `lib/providers/index.ts`：provider registry 与 summary 数据
+- `lib/learning-assistant-script.ts`：章节学习助手的步骤脚本
 - `tests/providers.test.ts`：锁定 provider registry 和执行模式契约的基础测试
 
 ## 你学完这一章后应该掌握什么

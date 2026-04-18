@@ -311,16 +311,7 @@ export class ToolActivityManager {
    * - 每个 Task 工具活动下挂载其子 Agent 的活动（parentId = Task 的 toolUseId）
    */
   getActivityTree(): AgentActivityNode[] {
-    const all = this.getActivities();
-    const roots = all.filter((a) => !a.parentId);
-    return roots.map((root) => this.buildNode(root, all));
-  }
-
-  private buildNode(activity: ToolActivity, all: ToolActivity[]): AgentActivityNode {
-    const children = all
-      .filter((a) => a.parentId === activity.id)
-      .map((child) => this.buildNode(child, all));
-    return { activity, children };
+    return buildActivityTree(this.getActivities());
   }
 }
 
@@ -337,4 +328,17 @@ export function createToolActivityManager(): ToolActivityManager {
 export interface AgentActivityNode {
   activity: ToolActivity;
   children: AgentActivityNode[];
+}
+
+export function buildActivityTree(activities: ToolActivity[]): AgentActivityNode[] {
+  const roots = activities.filter((activity) => !activity.parentId);
+  return roots.map((root) => buildActivityNode(root, activities));
+}
+
+function buildActivityNode(activity: ToolActivity, activities: ToolActivity[]): AgentActivityNode {
+  const children = activities
+    .filter((candidate) => candidate.parentId === activity.id)
+    .map((child) => buildActivityNode(child, activities));
+
+  return { activity, children };
 }

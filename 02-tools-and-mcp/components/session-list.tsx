@@ -69,7 +69,10 @@ export function SessionList({ currentSessionId, onSessionSelect, onNewChat, refr
   };
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-muted/10">
+    <div
+      className="flex h-full w-64 flex-col border-r bg-muted/10"
+      data-learning-target="session-list"
+    >
       <div className="p-4 space-y-3">
         <h2 className="text-lg font-semibold">Chat History</h2>
         <Button
@@ -77,6 +80,7 @@ export function SessionList({ currentSessionId, onSessionSelect, onNewChat, refr
           className="w-full"
           variant="default"
           size="sm"
+          data-learning-target="new-chat-button"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Chat

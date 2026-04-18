@@ -5,14 +5,18 @@
 ## 快速开始
 
 ```bash
+cp ../.env.local.example ../.env.local
+# 在仓库根目录的 .env.local 中填写 ANTHROPIC_API_KEY
 cd 03-agent-with-permission
 pnpm install
-cp .env.local.example .env.local
-# 在 .env.local 中填写 ANTHROPIC_API_KEY
 pnpm dev
 ```
 
+默认情况下，本章会自动复用仓库根目录的 `.env.local`；只有当你想为本章单独覆盖配置时，才需要在 `03-agent-with-permission/` 目录里额外放一个 `.env.local`。
+
 打开 [http://localhost:3000](http://localhost:3000)。
+
+页面右下角新增了“学习助手”抽屉入口，会围绕权限请求、先拒绝再放行的行为分支，以及 AskUserQuestion 表单，带你按顺序观察这一章的关键交互。
 
 ## 这一章解决什么问题
 
@@ -32,6 +36,11 @@ pnpm dev
 
 - Agent 发起工具调用时，可以触发前端审批
 - 用户可以 Allow、Deny，或者在支持建议规则时选择 Always Allow
+- 对于“路径超出允许工作目录”的请求，普通 Allow 也会带上本次继续执行所需的目录授权，避免同一步任务里反复弹窗
+- 对于 `Edit` / `Write` 这类文件修改请求，普通 Allow 也会带上 SDK 给出的当前编辑授权建议，避免出现“点了 Allow 仍然被判 denied”
+- 对于带 `suggestions` 的 `Bash` 请求，普通 Allow 同样会带上当前会话建议权限，避免命令级审批通过后仍无法继续执行
+- 本章默认把“当前章节目录 + 仓库根目录”一起作为 SDK 工作区范围，因此像根目录 `README.md` 这类教学文件可以直接被读取
+- 本章会复用仓库根目录 `.env.local` 里的 `ANTHROPIC_MODEL`；如果你配置了 `minimax/minimax-m2.7`，实际调用和会话元数据都会使用这个模型
 - `AskUserQuestion` 这类“Agent 反过来向用户提问”的特殊工具，也会被渲染成专门表单
 
 后端通过 `canUseTool` + SSE + Promise 把“正在运行的工具调用”与“前端的用户决策”连接起来；前端通过 `components/permission-selector.tsx` 展示通用审批 UI 和 `AskUserQuestion` 表单。
@@ -84,3 +93,11 @@ pnpm dev
 - 能用新手能听懂的话解释 `canUseTool`、`PermissionMode`、`AskUserQuestion`。
 - 能亲手完成至少两个权限练习场景，并知道每一步该观察什么。
 - 能理解用户决策是如何通过 SSE 和后端 Promise 重新接回 Agent 运行流的。
+
+练习场景 3：追加 hello world
+
+1. 输入 `请在 README.md 文件末尾追加一行 "hello world"。`
+2. 观察权限面板弹出，查看工具调用内容。
+3. 点击 `Allow` 放行。
+
+观察什么：文件写入类操作同样受权限系统管控；放行后 Agent 会执行写入并反馈结果，你可以在仓库根目录 README.md 末尾确认 "hello world" 已成功追加。
