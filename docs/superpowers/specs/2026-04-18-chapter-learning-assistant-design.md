@@ -29,6 +29,7 @@ The requested improvement is an in-product learning layer that appears while a c
 3. Provide a shared interaction shell across chapters so the repository feels like one series.
 4. Allow each chapter to express slightly different teaching patterns based on its concept focus.
 5. Help beginners connect visible UI behavior to the right concepts, terms, and files.
+6. Add an advanced “implementation view” for learners who have already run the case and now want to understand code structure, function responsibilities, and data flow.
 
 ## Non-Goals
 
@@ -42,10 +43,16 @@ The requested improvement is an in-product learning layer that appears while a c
 The repository should add a **chapter learning assistant** with this model:
 
 - A **right-side drawer** is the primary learning surface.
+- The same drawer includes a **mode switcher**.
 - **Local floating hints** are used only for key moments that benefit from stronger “click here / look here” guidance.
 - All chapters share one assistant shell, but each chapter can provide its own learning script and optional custom step types.
 
 This is intentionally a **light teaching layer** rather than a tutorial takeover.
+
+More specifically, the drawer should support two complementary views:
+
+- A default **guided action view** for beginners that emphasizes what to do next, where to look, and why it matters.
+- An optional **implementation view** for advancing learners that explains files, functions, internal coordination, and data flow behind the same step.
 
 ## Core Experience Principles
 
@@ -78,11 +85,19 @@ Each runnable chapter gets a consistent learning assistant shell with:
 
 - A persistent entry point such as `Learning Assistant`
 - A right-side drawer as the main container
+- A mode switcher such as `Guided Actions / Implementation View`
 - Chapter title and progress state
 - Step navigation
 - Close and restart actions
 - Optional completion state
 - Lightweight concept chips or term notes
+
+The switching rules should remain simple and stable:
+
+- The drawer opens in the guided action view by default.
+- Learners opt into the implementation view manually.
+- Switching modes does not change the current step; it only changes how that step is explained.
+- If a chapter or step does not yet provide implementation-view content, the drawer should fall back gracefully instead of showing empty structure.
 
 ### Optional Floating Hints
 
@@ -115,6 +130,25 @@ Optional supporting blocks can be added per step:
 - `Open the implementation file`
 - `Mark as done`
 
+### Implementation View Information Architecture
+
+The implementation view should not be a static code glossary. It should explain the current step as a causal chain:
+
+`what the learner just did -> what changed in the UI -> what happened internally -> which files/functions matter -> how they coordinate -> how data flows`
+
+Recommended default structure:
+
+1. **Behavior chain**
+   A short path from user action to visible outcome.
+2. **What happened**
+   A concise explanation of the internal cause-and-effect for this step.
+3. **Read the code**
+   A short list of key files and functions with one-line role descriptions.
+4. **Data flow**
+   A compact path showing how input, state, SDK calls, and output move through the system.
+
+To keep the drawer readable, `Behavior chain` and `What happened` should be expanded by default, while `Read the code` and `Data flow` should be collapsible.
+
 ## Shared Step Types
 
 The shared shell should support a small set of reusable step patterns:
@@ -133,6 +167,29 @@ The shared shell should support a small set of reusable step patterns:
   The learner gets a short recap of what this chapter added.
 
 Chapters do not need every type, but the shared shell should make these patterns easy to express.
+
+### Dual-View Step Model
+
+The repository should keep one chapter script per chapter and extend each step to support two views rather than introducing a separate implementation-view script system. A single step should therefore contain:
+
+- one beginner-oriented guided action block
+- one optional implementation-view block
+
+This keeps the learning path stable across both modes and makes progressive rollout practical:
+
+- the same user action stays mapped to the same step in both modes
+- existing chapters can add implementation-view content incrementally
+- the chapter README, page UI, and learning assistant can stay aligned around one shared sequence
+
+Recommended implementation-view fields include:
+
+- `trigger`: what the learner just did
+- `visibleEffect`: what changed in the visible UI
+- `internals`: what happened internally
+- `files`: which files matter most
+- `functions`: which functions deserve attention
+- `dataFlow`: the path data takes through the system
+- `relationships`: how the listed modules or functions cooperate
 
 ## Chapter-Level Customization Model
 
@@ -158,7 +215,31 @@ Recommended split of responsibilities:
   - Highlight target
   - Term notes
   - Optional code references
+  - Optional implementation-view content
   - Chapter completion summary
+
+## Implementation View Maintenance Constraints
+
+To avoid turning the implementation view into an oversized second documentation system, the repository should follow these constraints:
+
+- Each advanced step explains one user action, not multiple parallel branches.
+- Files and functions should be limited to the minimum set needed to understand the current behavior.
+- A good default limit is `2-4` files and `3-6` functions per step.
+- The drawer should not duplicate long README background sections; it supports runtime understanding, while the README remains the chapter narrative.
+- The first version should be hand-authored rather than auto-generated so the explanations stay accurate and pedagogically deliberate.
+
+## Recommended Rollout
+
+The repository should not try to fill in implementation-view content for all runnable chapters at once. A staged rollout is safer:
+
+1. Start with `05-memory-and-skills`
+   - best suited for explaining memory selection, skill presets, and prompt assembly
+2. Extend to `06-remote-and-multi-provider`
+   - best suited for explaining provider switching, stable abstractions, and backend differences
+3. Once the structure is validated, expand to `02`, `03`, and `04`
+   - covering tool event flow, permission branching, and multi-agent orchestration
+4. Re-evaluate `01-quick-start` last
+   - it may only need a lighter code map instead of a full implementation view
 
 ## Chapter Content Recommendations
 
@@ -236,6 +317,12 @@ Teaching focus:
 - Skill mode is not the same as random style variation
 - Context injection is observable
 
+The implementation view is especially valuable here because it can explain:
+
+- how memory selection contributes to prompt assembly
+- how skill presets change the system prompt shape
+- why the same user question produces different outputs when injected context changes
+
 Recommended steps:
 
 1. Create two memory items.
@@ -251,6 +338,12 @@ Teaching focus:
 - What changes across providers
 - What should stay stable
 - Why provider abstraction protects the UI layer
+
+The implementation view is especially valuable here because it can explain:
+
+- which transcript and UI behaviors should remain stable after a provider switch
+- how request configuration maps onto different provider adapters
+- how provider notes and execution mode relate to the backend boundary
 
 Recommended steps:
 

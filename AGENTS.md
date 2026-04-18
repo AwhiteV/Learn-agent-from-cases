@@ -127,6 +127,7 @@ pnpm lint     # Run ESLint
 - 如果新增章节涉及新的教学定位，需确保 spec、根 README 与根 AGENTS.md 三者描述一致
 - 如果同一份教程扩展 spec 同时存在英文版和中文版，两个版本必须保持同步更新；修改任一版本时，都要检查另一版本是否需要同步，避免维护责任不清或内容漂移
 - 当前仓库已新增章节内学习引导设计 spec：`2026-04-18-chapter-learning-assistant-design.md` 与 `2026-04-18-chapter-learning-assistant-design.zh-CN.md`，后续如果实现页面内浮层/抽屉式学习助手，相关章节 README、实现代码与对应 `AGENTS.md` 必须一起维护
+- 上述章节学习助手 design spec 现已扩展为“双模式抽屉”设计：默认操作引导 + 可切换的实现视角；后续若调整代码映射、函数职责说明、数据流讲解或试点章节范围，必须同步更新这两份 spec，并检查对应章节 README、实现代码、tests 与 `AGENTS.md`
 
 ### Tutorial Expansion Plans
 - `docs/superpowers/plans/` 用于存放多步骤教程升级任务的执行计划
