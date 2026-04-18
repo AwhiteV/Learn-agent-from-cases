@@ -9,6 +9,8 @@ This is a tutorial repository for the Codex Agent SDK, structured as a monorepo 
 At the root level, keep the tutorial narrative aligned with a beginner-first progression:
 - `00-playground` and `00-playground-v2` are the mental-model entry points
 - `01-quick-start` to `06-remote-and-multi-provider` are the currently runnable mainline chapters
+- Root `README.md` may include homepage badges and a language-navigation line, but badge labels and language state must match the real repo status (for example, do not link to untranslated docs that do not exist yet)
+- If a root-level `README.en.md` exists, keep its chapter list and repo-status summary aligned with the Chinese `README.md`, even if the English page is intentionally shorter
 
 ## Package Manager
 

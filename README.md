@@ -1,5 +1,14 @@
 # Claude Agent SDK Master
 
+[![GitHub stars](https://img.shields.io/github/stars/AwhiteV/claude-agent-sdk-master?style=flat-square&logo=github)](https://github.com/AwhiteV/claude-agent-sdk-master/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/AwhiteV/claude-agent-sdk-master?style=flat-square&logo=github)](https://github.com/AwhiteV/claude-agent-sdk-master/network/members)
+[![License](https://img.shields.io/github/license/AwhiteV/claude-agent-sdk-master?style=flat-square)](https://github.com/AwhiteV/claude-agent-sdk-master/blob/main/LICENSE)
+[![Tutorial Version](https://img.shields.io/badge/version-tutorial--2.0-22c55e?style=flat-square)](https://github.com/AwhiteV/claude-agent-sdk-master)
+[![Claude Code Friendly](https://img.shields.io/badge/Claude%20Code-Friendly-7c3aed?style=flat-square)](https://claude.ai/code)
+[![Agent SDK Tutorial](https://img.shields.io/badge/Agent%20SDK-Tutorial-2563eb?style=flat-square)](https://platform.claude.com/docs/en/agent-sdk/typescript)
+
+🌐 **Language / 语言**: **中文** | [English](./README.en.md)
+
 一个面向初学者的中文优先教程仓库，帮助你从“第一次接触 Agent SDK”走到“理解面向产品的 Agent 架构”。
 
 本仓库不是 Proma 的功能镜像，也不是官方文档的翻译版。它更像一条可动手实践的学习路线：你会先看懂 session、tools、MCP 和权限这些基础能力，再逐步理解 teams、memory、skills 与 provider abstraction 为什么会在真实产品里变得重要。
