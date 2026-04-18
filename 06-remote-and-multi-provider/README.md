@@ -23,7 +23,7 @@ corepack pnpm dev
 - remote agent 是不是一定要先搭一整套远程基础设施
 - local invocation 和 remote invocation 到底哪里不同，哪里又应该保持一样
 
-这一章用一个可运行的“remote agent console with provider switching”来回答这些问题：
+这一章用一个可运行的“支持 Provider 切换的远程 Agent 控制台”来回答这些问题：
 
 - 前端始终通过同一个 `POST /api/chat` 接口发请求
 - 服务端始终通过同一个 provider registry 查找 provider
@@ -34,8 +34,8 @@ corepack pnpm dev
 
 为了降低第一次体验这章时的理解门槛，页面右下角也提供了一个“学习助手”抽屉入口，而且现在和 05 章一样支持双模式：
 
-- `操作引导`：适合第一次跑 case 的学习者，按步骤带你先切 provider、再发同一请求、再观察 stable abstraction 和 transcript 差异。
-- `实现视角`：适合已经跑通过一次 case 的学习者，重点回看 provider switcher、chat route、provider registry、provider inspector 之间是怎样串成一条协作链的。
+- `操作引导`：适合第一次跑 case 的学习者，按步骤带你先切 provider、再发同一请求、再观察稳定抽象层和 transcript 差异。
+- `实现视角`：适合已经跑通过一次 case 的学习者，重点回看 Provider 切换器、chat route、provider registry、provider inspector 之间是怎样串成一条协作链的。
 
 这两个模式讲的是同一条 provider 切换路径，只是一个先帮你把实验做出来，另一个再帮你把实现读明白。
 
@@ -83,13 +83,13 @@ export interface AgentProvider {
 
 推荐按这个顺序操作：
 
-1. 保持默认消息不变，先用 `Local Agent` 发送一次。
-   观察什么：右侧的 transcript、`Active provider`、`Execution mode` 和 provider notes 会一起更新，你能先看到“本地 provider 是如何被统一接口消费的”。
+1. 保持默认消息不变，先用 `本地 Agent` 发送一次。
+   观察什么：右侧的 transcript、`当前 Provider`、`执行模式` 和 provider notes 会一起更新，你能先看到“本地 provider 是如何被统一接口消费的”。
 
-2. 切换到 `Mock Remote Path`，发送完全相同的消息。
+2. 切换到 `模拟远程路径`，发送完全相同的消息。
    观察什么：返回结构仍然是统一的 `ProviderResult`，但 `executionMode` 会变成 `remote`，provider notes 也会明确告诉你这只是 same-process 的 latency-only simulation。
 
-3. 对照 `Provider Inspector` 中的 `Stable abstraction` 代码块和 `What stays constant` 卡片。
+3. 对照 `Provider 检查面板` 中的 `稳定抽象层` 代码块和 `哪些内容保持不变` 卡片。
    观察什么：虽然 provider 在变，但请求体仍然是 `{ providerId, message }`，返回结构仍然是 `ProviderResult`，页面渲染逻辑也没有跟着换一套。
 
 4. 再发一个不同类型的问题，比如 `Summarize how this provider setup would scale from a local tutorial to a hosted product.`

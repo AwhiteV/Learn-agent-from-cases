@@ -29,9 +29,9 @@ export abstract class BaseProvider implements AgentProvider {
 
   protected buildSharedChecklist(message: string) {
     return [
-      `Task received: "${message}"`,
-      "The registry selected a provider from providerId instead of hardcoding behavior.",
-      "The UI will render the same ProviderResult fields no matter which provider runs.",
+      `收到的任务："${message}"`,
+      "registry 会根据 providerId 选择对应的 provider，而不是把行为写死。",
+      "无论运行的是哪个 provider，UI 都会渲染同一套 ProviderResult 字段。",
     ];
   }
 }

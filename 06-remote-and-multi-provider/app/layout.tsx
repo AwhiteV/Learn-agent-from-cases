@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Claude Agent SDK - Remote and Multi Provider",
+  title: "Claude Agent SDK - 第六章：远程与多 Provider",
   description:
-    "A runnable tutorial chapter for comparing local and remote-style provider execution through one abstraction.",
+    "一个可运行的教程章节，用统一抽象层对比本地 Provider 与远程风格 Provider 的执行差异。",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>

@@ -19,7 +19,7 @@ function wait(delayMs: number) {
 
 export class MockRemoteProvider extends BaseProvider {
   constructor() {
-    super("mock-remote", "Mock Remote Path", "remote");
+    super("mock-remote", "模拟远程路径", "remote");
   }
 
   async run(request: ProviderRequest) {
@@ -30,29 +30,29 @@ export class MockRemoteProvider extends BaseProvider {
     await wait(delayMs);
 
     const output = [
-      "Remote-style execution completed as a latency-only remote-style simulation.",
+      "远程风格执行已完成，这里使用的是仅延迟的远程风格模拟。",
       "",
-      `Task: ${message}`,
+      `任务：${message}`,
       "",
-      "What this teaches:",
-      "1. You can model a remote-style provider without leaving the same Next.js server process.",
-      "2. Added latency changes the feel of execution, but not the app-level contract.",
-      "3. The UI still receives the same ProviderResult payload as the local mode.",
+      "这一段在说明什么：",
+      "1. 即使不离开同一个 Next.js 服务进程，也能模拟远程风格 Provider。",
+      "2. 额外延迟会改变执行体验，但不会改变应用层契约。",
+      "3. UI 收到的仍然是和本地模式相同的 ProviderResult 载荷。",
       "",
-      "Simulated remote-style flow:",
-      "1. Build ProviderRequest data.",
-      "2. Route by providerId.",
-      "3. Pause to mimic a remote round trip inside the same Next.js server process.",
-      "4. Return the unified result envelope.",
+      "模拟的远程风格流程：",
+      "1. 构造 ProviderRequest 数据。",
+      "2. 根据 providerId 路由。",
+      "3. 在同一个 Next.js 服务进程里暂停一段时间，用来模拟远程往返。",
+      "4. 返回统一的结果包。",
       "",
-      "Shared abstraction reminders:",
+      "共享抽象层提醒：",
       ...checklist.map((item) => `- ${item}`),
     ].join("\n");
 
     return this.createResult(output, [
-      `Latency-only simulation: ${delayMs}ms delay inside the same process.`,
-      "This chapter does not hand work to a real remote worker or external service.",
-      "Remote-style providers can still stay swappable when they honor the same contract.",
+      `仅延迟模拟：在同一个进程里额外等待 ${delayMs}ms。`,
+      "这一章不会把任务真正交给远程 worker 或外部服务。",
+      "只要遵守同一份契约，远程风格 Provider 依然可以保持可替换。",
     ]);
   }
 }

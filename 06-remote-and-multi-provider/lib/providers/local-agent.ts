@@ -3,7 +3,7 @@ import type { ProviderRequest } from "@/lib/types";
 
 export class LocalAgentProvider extends BaseProvider {
   constructor() {
-    super("local-agent", "Local Agent", "local");
+    super("local-agent", "本地 Agent", "local");
   }
 
   async run(request: ProviderRequest) {
@@ -11,23 +11,23 @@ export class LocalAgentProvider extends BaseProvider {
     const checklist = this.buildSharedChecklist(message);
 
     const output = [
-      "Local execution completed in-process.",
+      "本地执行已在当前进程内完成。",
       "",
-      `Task: ${message}`,
+      `任务：${message}`,
       "",
-      "What this teaches:",
-      "1. The API route can call a provider directly inside the same Next.js runtime.",
-      "2. No network serialization is required before provider logic starts.",
-      "3. The response still comes back through the same ProviderResult shape.",
+      "这一段在说明什么：",
+      "1. API route 可以在同一个 Next.js 运行时里直接调用 provider。",
+      "2. provider 逻辑开始前，不需要经过额外的网络序列化边界。",
+      "3. 返回结果依然会通过同一套 ProviderResult 结构交回界面。",
       "",
-      "Shared abstraction reminders:",
+      "共享抽象层提醒：",
       ...checklist.map((item) => `- ${item}`),
     ].join("\n");
 
     return this.createResult(output, [
-      "Called directly from the API route inside the same server process.",
-      "Useful when you want the simplest teaching path or a single-runtime demo.",
-      "The UI does not need a special rendering branch for local execution.",
+      "直接从 API route 调用，整个过程都在同一个服务进程内完成。",
+      "适合讲解最简单的教学路径，或者单运行时的演示案例。",
+      "对于本地执行，UI 不需要额外分出一条特殊渲染分支。",
     ]);
   }
 }

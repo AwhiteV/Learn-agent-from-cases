@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     payload = (await request.json()) as Partial<ChatRequestBody>;
   } catch {
     return NextResponse.json(
-      { error: "Request body must be valid JSON." },
+      { error: "请求体必须是合法的 JSON。" },
       { status: 400 },
     );
   }
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     typeof payload.providerId !== "string"
   ) {
     return NextResponse.json(
-      { error: "message and providerId are required." },
+      { error: "message 和 providerId 都是必填项。" },
       { status: 400 },
     );
   }
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   const provider = getProviderById(payload.providerId);
 
   if (!provider) {
-    return NextResponse.json({ error: "Unknown providerId." }, { status: 400 });
+    return NextResponse.json({ error: "未知的 providerId。" }, { status: 400 });
   }
 
   const result = await provider.run({ message: payload.message.trim() });
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
   if (!providerSummary) {
     return NextResponse.json(
-      { error: "Provider summary configuration is missing." },
+      { error: "缺少 Provider 摘要配置。" },
       { status: 500 },
     );
   }

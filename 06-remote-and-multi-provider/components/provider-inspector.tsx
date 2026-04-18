@@ -39,21 +39,21 @@ export function ProviderInspector({
       data-learning-target="provider-inspector"
     >
       <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-500">
-        Provider Inspector
+        Provider 检查面板
       </p>
       <h2 className="mt-2 text-2xl font-semibold text-stone-950">
-        Active provider: {activeProvider.name}
+        当前 Provider：{activeProvider.name}
       </h2>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <div className="rounded-[1.5rem] border border-[var(--border)] bg-white/70 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-            Execution mode
+            执行模式
           </p>
           <p className="mt-2 text-lg font-semibold text-stone-950">
             {activeProvider.executionMode === "local"
-              ? "Local invocation"
-              : "Remote-style invocation"}
+              ? "本地调用"
+              : "远程风格调用"}
           </p>
           <p className="mt-3 text-sm leading-6 text-stone-600">
             {activeProvider.boundary}
@@ -62,7 +62,7 @@ export function ProviderInspector({
 
         <div className="rounded-[1.5rem] border border-[var(--border)] bg-white/70 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-            Route pattern
+            路由路径
           </p>
           <p className="mt-2 text-sm leading-6 text-stone-700">
             {activeProvider.routePattern}
@@ -72,7 +72,7 @@ export function ProviderInspector({
 
       <div className="mt-5 rounded-[1.5rem] border border-[var(--border)] bg-stone-950 p-4 text-stone-50">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">
-          Stable abstraction
+          稳定抽象层
         </p>
         <pre className="mt-3 overflow-x-auto text-xs leading-6 text-stone-100">
           {contractSnippet}
@@ -81,7 +81,7 @@ export function ProviderInspector({
 
       <div className="mt-5 rounded-[1.5rem] border border-[var(--border)] bg-white/70 p-4">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-          What stays constant
+          哪些内容保持不变
         </p>
         <div className="mt-3 grid gap-3">
           {activeProvider.constantSurface.map((item) => (
@@ -97,7 +97,7 @@ export function ProviderInspector({
 
       <div className="mt-5 rounded-[1.5rem] border border-[var(--border)] bg-white/70 p-4">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-          Latest provider notes
+          最近一次 Provider 备注
         </p>
         <div className="mt-3 grid gap-3">
           {notes.length > 0 ? (
@@ -111,8 +111,7 @@ export function ProviderInspector({
             ))
           ) : (
             <div className="rounded-[1.1rem] border border-dashed border-[var(--border)] px-3 py-3 text-sm leading-6 text-stone-500">
-              Send a message with the active provider to capture provider-specific
-              notes here.
+              先用当前 Provider 发送一条消息，这里才会显示对应的 Provider 专属备注。
             </div>
           )}
         </div>

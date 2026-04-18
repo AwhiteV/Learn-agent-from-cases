@@ -30,7 +30,7 @@ export function ChatConsole({
 }: ChatConsoleProps) {
   const [activeProviderId, setActiveProviderId] = useState(defaultProviderId);
   const [message, setMessage] = useState(
-    "Show how a local and a remote-style provider would process a weekly release summary request.",
+    "请演示本地 Provider 和远程风格 Provider 会如何处理一条每周发布总结请求。",
   );
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [latestResponse, setLatestResponse] = useState<ChatResponseBody | null>(null);
@@ -77,7 +77,7 @@ export function ChatConsole({
       const data = (await response.json()) as ChatResponseBody | { error: string };
 
       if (!response.ok || "error" in data) {
-        throw new Error("error" in data ? data.error : "Chat request failed.");
+        throw new Error("error" in data ? data.error : "聊天请求失败。");
       }
 
       const assistantEntry: TranscriptItem = {
@@ -92,7 +92,7 @@ export function ChatConsole({
       setTranscript((currentTranscript) => [...currentTranscript, assistantEntry]);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Chat request failed.",
+        error instanceof Error ? error.message : "聊天请求失败。",
       );
     } finally {
       setIsSending(false);
@@ -119,18 +119,18 @@ export function ChatConsole({
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-500">
-              Chat Console
+              聊天控制台
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-stone-950">
-              Same task, different provider path
+              同一项任务，不同的 Provider 路径
             </h2>
           </div>
           {activeProvider ? (
             <div className="rounded-[1.2rem] border border-[var(--border)] bg-white/80 px-4 py-3 text-sm text-stone-700">
               <span className="font-semibold text-stone-950">
-                Active provider:
+                当前 Provider：
               </span>{" "}
-              {activeProvider.name} · {activeProvider.executionMode}
+              {activeProvider.name} · {activeProvider.executionMode === "local" ? "local" : "remote"}
             </div>
           ) : null}
         </div>
@@ -138,55 +138,53 @@ export function ChatConsole({
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           <div className="rounded-[1.5rem] border border-[var(--border)] bg-white/75 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-              Step 1
+              第 1 步
             </p>
             <p className="mt-2 text-sm leading-6 text-stone-700">
-              Pick a provider. That changes execution mode, not the page-level
-              chat contract.
+              先选择一个 Provider。变化的是执行模式，不是页面层的聊天契约。
             </p>
           </div>
           <div className="rounded-[1.5rem] border border-[var(--border)] bg-white/75 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-              Step 2
+              第 2 步
             </p>
             <p className="mt-2 text-sm leading-6 text-stone-700">
-              Send the same request body through <code>POST /api/chat</code>.
+              通过 <code>POST /api/chat</code> 发送同一份请求体。
             </p>
           </div>
           <div className="rounded-[1.5rem] border border-[var(--border)] bg-white/75 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-              Step 3
+              第 3 步
             </p>
             <p className="mt-2 text-sm leading-6 text-stone-700">
-              Compare output, notes, and execution mode while the abstraction
-              layer stays fixed.
+              对比输出、备注和执行模式，同时观察抽象层如何保持稳定。
             </p>
           </div>
         </div>
 
         <form className="mt-6" onSubmit={handleSubmit}>
           <label className="block text-sm font-semibold text-stone-900" htmlFor="message">
-            Task message
+            任务消息
           </label>
           <textarea
             className="mt-3 min-h-36 w-full rounded-[1.5rem] border border-[var(--border)] bg-white/80 px-4 py-4 text-base leading-7 text-stone-900 outline-none transition focus:border-stone-900"
             id="message"
             onChange={(event) => setMessage(event.target.value)}
-            placeholder="Ask the same task in each provider mode."
+            placeholder="用不同 Provider 发送同一项任务。"
             value={message}
             data-learning-target="chat-input"
           />
 
           <div className="mt-4 rounded-[1.3rem] border border-[var(--border)] bg-stone-950 px-4 py-4 text-sm leading-7 text-stone-100">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">
-              Unified request payload
+              统一请求载荷
             </p>
             <pre className="mt-2 overflow-x-auto text-xs leading-6">
 {`POST /api/chat
 ${JSON.stringify(
   {
     providerId: activeProvider?.id ?? "",
-    message: message.trim() || "Your task goes here",
+    message: message.trim() || "在这里输入你的任务",
   },
   null,
   2,
@@ -206,7 +204,7 @@ ${JSON.stringify(
               disabled={!activeProvider || isSending || message.trim().length === 0}
               type="submit"
             >
-              {isSending ? "Routing through provider..." : "Send through active provider"}
+              {isSending ? "正在通过 Provider 路由..." : "通过当前 Provider 发送"}
             </button>
             <button
               className="rounded-full border border-[var(--border)] bg-white/80 px-5 py-3 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-white"
@@ -217,7 +215,7 @@ ${JSON.stringify(
               }}
               type="button"
             >
-              Clear transcript
+              清空记录
             </button>
           </div>
         </form>
@@ -225,8 +223,7 @@ ${JSON.stringify(
         <div className="mt-6 space-y-4" data-learning-target="transcript-panel">
           {transcript.length === 0 ? (
             <div className="rounded-[1.6rem] border border-dashed border-[var(--border)] bg-white/55 px-5 py-6 text-sm leading-7 text-stone-600">
-              No transcript yet. Send one task with the local provider, switch to
-              the mock remote provider, and send the exact same task again.
+              还没有聊天记录。先用本地 Provider 发送一次任务，再切换到模拟远程 Provider，把同一条任务原样再发一次。
             </div>
           ) : (
             transcript.map((entry) => (
@@ -246,7 +243,7 @@ ${JSON.stringify(
                         : "text-stone-300"
                     }`}
                   >
-                    {entry.role === "assistant" ? "Provider response" : "Learner task"}
+                    {entry.role === "assistant" ? "Provider 响应" : "学习者任务"}
                   </p>
                   {entry.providerName ? (
                     <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">

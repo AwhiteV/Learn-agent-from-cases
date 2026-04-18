@@ -16,5 +16,5 @@ test("chat route returns 400 for malformed JSON", async () => {
   const payload = (await response.json()) as { error?: string };
 
   assert.equal(response.status, 400);
-  assert.equal(payload.error, "Request body must be valid JSON.");
+  assert.equal(payload.error, "请求体必须是合法的 JSON。");
 });

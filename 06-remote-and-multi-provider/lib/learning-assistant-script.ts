@@ -57,15 +57,15 @@ export const learningScript: LearningScript = {
       beginner: {
         doThis:
           "先用本地 provider 试一次，然后切到 remote-style 选项，再把同样的任务重发一遍。",
-        watchHere: "Provider Switcher 面板。",
+        watchHere: "Provider 切换器面板。",
         notice:
           "选中的 provider 会改变 execution mode 和说明文案，但页面不会因此换成另一套工作流。",
         whyItMatters:
           "provider abstraction 的目标，就是让执行路径可以变化，而不用为每个后端都重做一套 UI。",
       },
       advanced: {
-        trigger: "你在 Provider Switcher 里切换 provider，然后不改 message 再发送一次。",
-        visibleEffect: "Active provider、execution mode 和 provider notes 会一起变化，但同一套 chat UI 仍然复用。",
+        trigger: "你在 Provider 切换器里切换 provider，然后不改 message 再发送一次。",
+        visibleEffect: "当前 Provider、execution mode 和 provider notes 会一起变化，但同一套 chat UI 仍然复用。",
         internals:
           "`ProviderSwitcher` 只负责切换 `activeProviderId`，`ChatConsole` 用这个 state 选出当前 `activeProvider`。`handleSubmit` 会把 `providerId` 和 message 一起封装进 `ChatRequestBody` 发给 `/api/chat`，`route.ts` 再通过 `getProviderById` 找到对应 provider。",
         files: [
@@ -175,7 +175,7 @@ export const learningScript: LearningScript = {
       beginner: {
         doThis:
           "在看 provider 专属说明之前，先读一遍 contract 代码片段。",
-        watchHere: "Provider Inspector 面板。",
+        watchHere: "Provider 检查面板。",
         notice:
           "不管当前激活的是哪个 provider，`AgentProvider` 接口和 `ProviderResult` 结构都是一样的。",
         whyItMatters:
@@ -283,7 +283,7 @@ export const learningScript: LearningScript = {
       beginner: {
         doThis:
           "每次响应后，都去对比 inspector 里的 execution mode、notes 和边界说明。",
-        watchHere: "Provider Inspector 面板的下半部分。",
+        watchHere: "Provider 检查面板的下半部分。",
         notice:
           "provider notes 会解释执行方式发生了什么变化，但不会改动外层请求和响应契约。",
         whyItMatters:

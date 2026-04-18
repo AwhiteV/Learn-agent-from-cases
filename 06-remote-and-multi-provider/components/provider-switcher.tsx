@@ -19,14 +19,14 @@ export function ProviderSwitcher({
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-500">
-            Provider Switcher
+            Provider 切换器
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-stone-950">
-            Choose the execution path
+            选择执行路径
           </h2>
         </div>
         <div className="rounded-full bg-stone-900 px-3 py-1 text-xs font-semibold text-stone-50">
-          Same UI
+          同一套界面
         </div>
       </div>
 
@@ -53,7 +53,7 @@ export function ProviderSwitcher({
                       isActive ? "text-stone-300" : "text-stone-500"
                     }`}
                   >
-                    {provider.executionMode === "local" ? "Local" : "Remote"} execution
+                    {provider.executionMode === "local" ? "本地" : "远程风格"}执行
                   </p>
                 </div>
                 <span
@@ -63,7 +63,7 @@ export function ProviderSwitcher({
                       : "bg-stone-900 text-stone-50"
                   }`}
                 >
-                  {isActive ? "Active" : "Select"}
+                  {isActive ? "当前使用中" : "选择"}
                 </span>
               </div>
               <p

@@ -7,7 +7,7 @@ This file provides guidance for working inside `06-remote-and-multi-provider`.
 This chapter is a runnable tutorial-scale Next.js app for teaching provider
 abstraction through one visible learning surface.
 
-The target experience is a "remote agent console with provider switching."
+The target experience is a 中文化的 "remote agent console with provider switching."
 Keep it beginner-friendly, observable, and runnable on a local machine. Do not
 turn this chapter into a production remote orchestration system.
 
@@ -26,6 +26,7 @@ turn this chapter into a production remote orchestration system.
 - `lib/providers/index.ts`: provider registry and serialized summaries
 - `tests/providers.test.ts`: provider registry and execution contract tests
 - `tests/chat-route.test.ts`: chat route dispatch tests
+- `tests/ui-copy.test.ts`: learner-facing Chinese UI copy coverage
 
 - `components/learning-assistant.tsx`: in-page drawer and floating hint shell
 - `lib/learning-assistant-script.ts`: chapter-specific walkthrough content
@@ -76,6 +77,7 @@ corepack pnpm test
 - 如果你修改 provider 切换、`POST /api/chat` 请求体、provider registry、provider summary、inspector 展示或 transcript 写入逻辑，必须同步检查 `实现视角` 中的行为链、文件列表、函数职责和数据流说明是否仍然准确。
 - If provider targets, execution labels, or learning steps change, update the script, tests, and docs in the same task.
 - 仓库面向中文学习者时，学习助手文案默认使用中文；除非明确要求双语，否则不要回退成英文。
+- 仓库面向中文学习者时，`app/page.tsx`、Provider 切换与检查面板、聊天控制台、API 错误提示、Provider 输出说明等用户可见文案默认使用中文；除非明确要求双语，否则不要回退成英文。
 - `README.md` 应保持和前面章节一致的教学结构，至少包括“这一章解决什么问题”“动手实践”“这一章对应的 Agent SDK 概念”“与 Proma 的映射”“你学完这一章后应该掌握什么”等核心段落。
 - When you add files, update the key files section.
 - When you change commands, teaching goals, provider behavior, or environment
