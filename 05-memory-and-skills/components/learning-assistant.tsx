@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   learningScript,
@@ -64,10 +64,6 @@ export function LearningAssistant() {
 
   const step = useMemo(() => learningScript.steps[stepIndex], [stepIndex]);
 
-  useEffect(() => {
-    setExpandedSections(getCollapsedAdvancedSections());
-  }, [stepIndex]);
-
   if (!step) {
     return null;
   }
@@ -81,6 +77,11 @@ export function LearningAssistant() {
       ...current,
       [section]: !current[section],
     }));
+  };
+
+  const moveToStep = (nextStepIndex: number) => {
+    setStepIndex(nextStepIndex);
+    setExpandedSections(getCollapsedAdvancedSections());
   };
 
   return (
@@ -255,7 +256,7 @@ export function LearningAssistant() {
             <button
               className="rounded-full border px-4 py-2 text-sm transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
               disabled={stepIndex === 0}
-              onClick={() => setStepIndex((current) => Math.max(0, current - 1))}
+              onClick={() => moveToStep(Math.max(0, stepIndex - 1))}
               type="button"
             >
               上一步
@@ -266,9 +267,7 @@ export function LearningAssistant() {
             <button
               className="rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
               disabled={stepIndex === learningScript.steps.length - 1}
-              onClick={() =>
-                setStepIndex((current) => Math.min(learningScript.steps.length - 1, current + 1))
-              }
+              onClick={() => moveToStep(Math.min(learningScript.steps.length - 1, stepIndex + 1))}
               type="button"
             >
               下一步
