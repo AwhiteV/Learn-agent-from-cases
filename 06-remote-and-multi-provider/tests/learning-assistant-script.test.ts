@@ -8,6 +8,22 @@ interface LearningStepContract {
   title: string;
   type: "action" | "observation" | "comparison" | "term" | "checkpoint";
   targetId?: string;
+  beginner: {
+    doThis: string;
+    watchHere: string;
+    notice: string;
+    whyItMatters: string;
+    termNote?: string;
+  };
+  advanced?: {
+    trigger: string;
+    visibleEffect: string;
+    internals: string;
+    files: Array<{ path: string; role: string }>;
+    functions?: Array<{ name: string; file: string; role: string }>;
+    dataFlow: string[];
+    relationships?: string[];
+  };
 }
 
 interface LearningScriptContract {
@@ -19,6 +35,39 @@ interface LearningScriptContract {
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const scriptPath = path.join(projectRoot, "lib", "learning-assistant-script.ts");
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function assertAdvancedArtifacts(step: LearningStepContract) {
+  if (!step.advanced) {
+    return;
+  }
+
+  for (const file of step.advanced.files) {
+    assert.equal(
+      fs.existsSync(path.join(projectRoot, file.path)),
+      true,
+      `Expected advanced file "${file.path}" to exist in 06`,
+    );
+  }
+
+  for (const fn of step.advanced.functions ?? []) {
+    const source = fs.readFileSync(path.join(projectRoot, fn.file), "utf8");
+    const escapedName = escapeRegExp(fn.name);
+    const declarationPattern = new RegExp(
+      String.raw`(?:export\s+)?(?:async\s+)?function\s+${escapedName}\b|(?:public|protected|private)?\s*${escapedName}\s*\(|const\s+${escapedName}\s*=`,
+      "m",
+    );
+
+    assert.equal(
+      declarationPattern.test(source),
+      true,
+      `Expected function "${fn.name}" to be declared in ${fn.file}`,
+    );
+  }
+}
 
 async function loadLearningScript(): Promise<LearningScriptContract> {
   assert.equal(
@@ -40,6 +89,14 @@ test("learning script defines the remote-and-multi-provider walkthrough contract
   assert.equal(learningScript.chapterId, "06-remote-and-multi-provider");
   assert.equal(learningScript.chapterTitle, "远程与多 Provider 学习助手");
   assert.equal(learningScript.steps.length, 5);
+  assert.equal(typeof learningScript.steps[0].beginner.doThis, "string");
+  assert.deepEqual(learningScript.steps[2].advanced?.dataFlow, [
+    "provider switcher",
+    "chat console state",
+    "/api/chat",
+    "provider registry",
+    "provider inspector",
+  ]);
   assert.deepEqual(
     learningScript.steps.map((step) => ({
       title: step.title,
@@ -74,6 +131,26 @@ test("learning script defines the remote-and-multi-provider walkthrough contract
       },
     ],
   );
+  assert.equal(
+    learningScript.steps[1].advanced?.functions?.some(
+      (fn) => fn.name === "handleSubmit",
+    ),
+    true,
+  );
+  assert.equal(
+    learningScript.steps[1].advanced?.functions?.some((fn) => fn.name === "POST"),
+    true,
+  );
+  assert.equal(
+    learningScript.steps[1].advanced?.functions?.some(
+      (fn) => fn.name === "getProviderById",
+    ),
+    true,
+  );
+
+  for (const step of learningScript.steps) {
+    assertAdvancedArtifacts(step);
+  }
 });
 
 test("learning target ids stay mounted in the remote-and-multi-provider UI", async () => {
