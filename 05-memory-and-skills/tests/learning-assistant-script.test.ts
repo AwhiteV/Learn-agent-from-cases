@@ -4,6 +4,11 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import {
+  buildAdvancedViewModel,
+  getCollapsedAdvancedSections,
+} from "../components/learning-assistant";
+
 interface LearningStepContract {
   title: string;
   type: "action" | "observation" | "comparison" | "term" | "checkpoint";
@@ -175,4 +180,63 @@ test("learning target ids stay mounted in the memory-and-skills UI", async () =>
       `Expected target "${targetId}" to exist in the mounted 05 UI`,
     );
   }
+});
+
+test("learning assistant drawer exposes the implementation-view smoke labels", () => {
+  const drawerSource = fs.readFileSync(
+    path.join(projectRoot, "components", "learning-assistant.tsx"),
+    "utf8",
+  );
+
+  assert.equal(drawerSource.includes("操作引导"), true);
+  assert.equal(drawerSource.includes("实现视角"), true);
+  assert.equal(drawerSource.includes("行为链"), true);
+  assert.equal(drawerSource.includes("发生了什么"), true);
+  assert.equal(drawerSource.includes("看代码"), true);
+  assert.equal(drawerSource.includes("数据流"), true);
+
+  const advancedView = buildAdvancedViewModel({
+    trigger: "切换 skill preset 后重新发送同一个问题。",
+    visibleEffect: "prompt preview 和 transcript 会展示不同回答框架。",
+    internals:
+      "组件先记录 selectedSkillId，再在 submit 时把它发到聊天路由，最后由 chat engine 解析成教学回复。",
+    files: [
+      { path: "components/skill-selector.tsx", role: "选择当前 skill preset" },
+      { path: "components/chat-interface.tsx", role: "提交 chat 请求并保存状态" },
+    ],
+    functions: [
+      {
+        name: "getSkillPresetById",
+        file: "lib/skill-presets.ts",
+        role: "把 skill id 解析成对应 preset",
+      },
+      {
+        name: "createSkillSpecificResponse",
+        file: "lib/chat-engine.ts",
+        role: "根据 selectedSkill.id 生成不同回答模板",
+      },
+    ],
+    dataFlow: [
+      "skill selector",
+      "selectedSkillId state",
+      "handleSubmit",
+      "/api/chat",
+      "chat engine",
+      "prompt preview",
+    ],
+  });
+
+  assert.deepEqual(getCollapsedAdvancedSections(), {
+    code: false,
+    flow: false,
+  });
+  assert.equal(advancedView.behaviorChain.title, "行为链");
+  assert.equal(advancedView.whatHappened.title, "发生了什么");
+  assert.equal(advancedView.code.files.length, 2);
+  assert.equal(advancedView.code.functions.length, 2);
+  assert.equal(
+    advancedView.code.functions.some((fn) => fn.name === "getSkillPresetById"),
+    true,
+  );
+  assert.equal(advancedView.dataFlow.includes("prompt preview"), true);
 });
