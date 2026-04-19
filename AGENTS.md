@@ -147,6 +147,8 @@ pnpm lint     # Run ESLint
 - `tsconfig.json`: TypeScript configuration with strict mode
 - `.env.local.example`: 仓库级共享环境变量模板，默认供 `01` 到 `06` 章节复用
 - `学习助手.png`: 根 README 中用于展示章节内学习助手抽屉的项目级截图
+- `操作引导.png`: 根 README 中用于展示学习助手 `操作引导` 模式的项目级截图
+- `实现视角.png`: 根 README 中用于展示学习助手 `实现视角` 模式的项目级截图
 
 ## Common Patterns
 
