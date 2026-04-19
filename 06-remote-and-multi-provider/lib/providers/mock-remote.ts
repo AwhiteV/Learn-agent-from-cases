@@ -11,48 +11,35 @@ function resolveDelay() {
   return rawValue;
 }
 
-function wait(delayMs: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, delayMs);
-  });
-}
-
 export class MockRemoteProvider extends BaseProvider {
   constructor() {
     super("mock-remote", "模拟远程路径", "remote");
   }
 
-  async run(request: ProviderRequest) {
+  buildSystemPrompt(request: ProviderRequest) {
     const message = this.readMessage(request);
     const checklist = this.buildSharedChecklist(message);
-    const delayMs = resolveDelay();
 
-    await wait(delayMs);
-
-    const output = [
-      "远程风格执行已完成，这里使用的是仅延迟的远程风格模拟。",
-      "",
-      `任务：${message}`,
-      "",
-      "这一段在说明什么：",
-      "1. 即使不离开同一个 Next.js 服务进程，也能模拟远程风格 Provider。",
-      "2. 额外延迟会改变执行体验，但不会改变应用层契约。",
-      "3. UI 收到的仍然是和本地模式相同的 ProviderResult 载荷。",
-      "",
-      "模拟的远程风格流程：",
-      "1. 构造 ProviderRequest 数据。",
-      "2. 根据 providerId 路由。",
-      "3. 在同一个 Next.js 服务进程里暂停一段时间，用来模拟远程往返。",
-      "4. 返回统一的结果包。",
+    return [
+      "你当前运行在“模拟远程路径” provider 中。",
+      "你正在模拟第 06 章中的远程风格 provider 路径。",
+      "这不是实际远程 worker，而是同一个 Next.js 服务进程里的远程风格教学抽象。",
+      "请在回答里保持中文，并点出远程风格边界如何改变体验，但不要假装真的部署到了远端。",
+      "你仍然要先完成用户任务，再自然体现 provider 视角差异。",
       "",
       "共享抽象层提醒：",
       ...checklist.map((item) => `- ${item}`),
     ].join("\n");
+  }
 
-    return this.createResult(output, [
-      `仅延迟模拟：在同一个进程里额外等待 ${delayMs}ms。`,
-      "这一章不会把任务真正交给远程 worker 或外部服务。",
-      "只要遵守同一份契约，远程风格 Provider 依然可以保持可替换。",
-    ]);
+  buildNotes(request: ProviderRequest) {
+    const message = this.readMessage(request);
+    const delayMs = resolveDelay();
+
+    return [
+      `仅延迟模拟：在同一个 Next.js 服务进程里额外等待 ${delayMs}ms。`,
+      `当前远程风格 provider 正在处理任务：${message}`,
+      "这里不会把任务真正交给远程 worker；重点是保持同一份契约下的可替换执行边界。",
+    ];
   }
 }

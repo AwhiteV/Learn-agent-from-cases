@@ -50,6 +50,45 @@ export const learningScript: LearningScript = {
     "跟着一次 provider 切换的运行，分清哪些是稳定契约，哪些是 provider 自己的差异。",
   steps: [
     {
+      id: "inspect-session-history",
+      title: "查看历史会话",
+      type: "observation",
+      targetId: "session-list",
+      beginner: {
+        doThis: "先看左侧会话栏，确认 06 章也会像前面章节一样保存多轮任务。",
+        watchHere: "左侧历史会话列表。",
+        notice: "这里会展示当前章节的历史对话，并作为恢复旧任务的入口。",
+        whyItMatters: "provider abstraction 不是一次性 demo，它也应该放在持续 session 的工作台里理解。",
+      },
+      advanced: {
+        trigger: "你查看历史会话，或重新打开某条之前的 provider 对话。",
+        visibleEffect: "左侧会列出已经执行过的对话，并允许把旧 transcript 重新载入当前工作台。",
+        internals:
+          "`SessionList` 负责显示持久化 session，`/api/sessions` 和 `/api/sessions/[id]` 则把底层存储的数据交回聊天工作台使用。",
+        files: [
+          {
+            path: "components/session-list.tsx",
+            role: "渲染历史会话和恢复入口",
+          },
+          {
+            path: "app/api/sessions/route.ts",
+            role: "读取当前章节的 session 列表",
+          },
+          {
+            path: "app/api/sessions/[id]/route.ts",
+            role: "读取某条历史会话的消息详情",
+          },
+        ],
+        dataFlow: [
+          "session storage",
+          "/api/sessions",
+          "session list",
+          "load session",
+          "transcript",
+        ],
+      },
+    },
+    {
       id: "choose-a-provider",
       title: "选择一个 provider",
       type: "action",
@@ -187,7 +226,7 @@ export const learningScript: LearningScript = {
         trigger: "你检查 Inspector 里的 contract snippet，并把它和 provider 实现文件对照。",
         visibleEffect: "Inspector 会把 execution mode、routePattern 和 constant surface 摆在同一个视图里。",
         internals:
-          "`ProviderInspector` 使用 `ProviderSummary` 渲染当前 provider 的边界说明，而 `lib/types.ts` 里的 `ProviderRequest`、`ProviderResult` 和 `AgentProvider` 定义了统一接口。`BaseProvider` 再把共享的 `createResult` 与 `buildSharedChecklist` 抽出来，保证 local 和 remote-style provider 都返回同一种结构。",
+          "`ProviderInspector` 使用 `ProviderSummary` 渲染当前 provider 的边界说明，而 `lib/types.ts` 里的 `ProviderRequest`、`ProviderResult` 和 `AgentProvider` 定义了统一接口。`BaseProvider` 再把共享的 `buildSystemPrompt` 与 `buildSharedChecklist` 抽出来，保证 local 和 remote-style provider 都围绕同一份契约组装上下文。",
         files: [
           {
             path: "lib/providers/index.ts",
@@ -208,9 +247,9 @@ export const learningScript: LearningScript = {
         ],
         functions: [
           {
-            name: "createResult",
+            name: "buildSystemPrompt",
             file: "lib/providers/base.ts",
-            role: "把 provider 输出包装成统一的 ProviderResult",
+            role: "定义 provider 如何为真实聊天构造系统上下文",
           },
           {
             name: "buildSharedChecklist",
@@ -293,7 +332,7 @@ export const learningScript: LearningScript = {
         trigger: "你把 Inspector 里的 notes 和 providerDetails、provider run 结果对齐起来看。",
         visibleEffect: "每个 provider 都有自己的一组 notes，但 summary、boundary 和 routePattern 仍然来自同一个 registry。",
         internals:
-          "`getProviderSummaries` 会把 `providerDetails` 与 `providers` 合并成 UI 可读的 `ProviderSummary`，`getProviderById` 则在 `/api/chat` 里选中具体 provider。`LocalAgentProvider` 和 `MockRemoteProvider` 都通过 `BaseProvider.createResult` 返回统一形状，所以 Inspector 能稳定显示 latestResponse 的 notes。",
+          "`getProviderSummaries` 会把 `providerDetails` 与 `providers` 合并成 UI 可读的 `ProviderSummary`，`getProviderById` 则在 `/api/chat` 里选中具体 provider。`LocalAgentProvider` 和 `MockRemoteProvider` 会分别提供 `buildSystemPrompt` 与 `buildNotes`，所以 Inspector 能稳定显示 latestResponse 里的 notes。",
         files: [
           {
             path: "lib/providers/index.ts",
@@ -324,9 +363,9 @@ export const learningScript: LearningScript = {
             role: "在路由层定位当前 provider",
           },
           {
-            name: "createResult",
+            name: "buildNotes",
             file: "lib/providers/base.ts",
-            role: "确保每个 provider 返回统一结果结构",
+            role: "确保每个 provider 都能给 Inspector 提供统一 notes 元数据",
           },
         ],
         dataFlow: [

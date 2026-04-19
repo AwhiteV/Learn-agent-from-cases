@@ -13,10 +13,13 @@ turn this chapter into a production remote orchestration system.
 
 ## Key Files
 
-- `app/page.tsx`: chapter entry page and teaching summary
+- `app/page.tsx`: chapter entry page
 - `app/layout.tsx`: root layout and metadata
-- `app/api/chat/route.ts`: unified `POST /api/chat` dispatch entry
-- `components/chat-console.tsx`: main teaching workbench and transcript
+- `app/api/chat/route.ts`: unified streamed `POST /api/chat` dispatch entry
+- `app/api/sessions/route.ts`: session list API
+- `app/api/sessions/[id]/route.ts`: session detail API
+- `components/chat-console.tsx`: session rail + chat workbench shell; keep the `01`-style three-column layout, widen the right rail, support collapsing it, and use top tabs to switch between the provider switcher and provider inspector
+- `components/session-list.tsx`: left session history rail and new-chat entry
 - `components/provider-switcher.tsx`: provider selection UI
 - `components/provider-inspector.tsx`: active provider, execution mode, and contract inspector
 - `lib/types.ts`: shared ProviderRequest / ProviderResult / AgentProvider contracts
@@ -24,8 +27,12 @@ turn this chapter into a production remote orchestration system.
 - `lib/providers/local-agent.ts`: local provider implementation
 - `lib/providers/mock-remote.ts`: remote-style provider implementation
 - `lib/providers/index.ts`: provider registry and serialized summaries
+- `lib/model-config.ts`: resolves the configured model from `ANTHROPIC_MODEL`
+- `lib/storage/index.ts`: chapter-local session persistence helpers
 - `tests/providers.test.ts`: provider registry and execution contract tests
 - `tests/chat-route.test.ts`: chat route dispatch tests
+- `tests/model-config.test.ts`: env-driven model selection coverage
+- `tests/session-api.test.ts`: session list API coverage
 - `tests/ui-copy.test.ts`: learner-facing Chinese UI copy coverage
 
 - `components/learning-assistant.tsx`: in-page drawer and floating hint shell
@@ -61,11 +68,18 @@ corepack pnpm test
 
 ## Configuration Notes
 
-- `.env.local.example` exposes `MOCK_REMOTE_DELAY_MS` so the mock remote
-  provider can simulate round-trip latency inside the same process.
-- No external API key is required for the default tutorial flow.
-- If provider ids, execution modes, or payload contracts change, update the UI,
-  README, and this file in the same task.
+- This chapter now defaults to the repository-root `.env.local`; it no longer
+  maintains a chapter-local `.env.local.example`.
+- `MOCK_REMOTE_DELAY_MS` still controls the same-process remote-style delay.
+- Real chat requires `ANTHROPIC_API_KEY`, and `ANTHROPIC_MODEL` can override
+  the default model.
+- Real chat is intentionally pinned to `@anthropic-ai/claude-agent-sdk@0.2.42`
+  for compatibility with the repo's common proxy-model setups such as
+  `minimax/minimax-m2.7`; re-verify the real request path before any SDK
+  upgrade.
+- If provider ids, execution modes, payload contracts, or env loading behavior
+  change, update the UI, README, root docs, and this file in the same task.
+- 主工作区应保持接近 `01-04` 的简洁聊天布局；provider switcher 和 provider inspector 需要放在更宽的右侧栏中，支持收起，并通过顶部 tab 切换查看，不要随意改动整体排版骨架。
 
 ## Documentation Sync Expectations
 
@@ -78,6 +92,7 @@ corepack pnpm test
 - If provider targets, execution labels, or learning steps change, update the script, tests, and docs in the same task.
 - 仓库面向中文学习者时，学习助手文案默认使用中文；除非明确要求双语，否则不要回退成英文。
 - 仓库面向中文学习者时，`app/page.tsx`、Provider 切换与检查面板、聊天控制台、API 错误提示、Provider 输出说明等用户可见文案默认使用中文；除非明确要求双语，否则不要回退成英文。
+- 本章默认复用仓库根目录的 `.env.local`，不再维护章节内 `.env.local.example`；如果修改读取方式或覆盖约定，需要同步更新根 README、根 AGENTS、README 和本文件。
 - `README.md` 应保持和前面章节一致的教学结构，至少包括“这一章解决什么问题”“动手实践”“这一章对应的 Agent SDK 概念”“与 Proma 的映射”“你学完这一章后应该掌握什么”等核心段落。
 - When you add files, update the key files section.
 - When you change commands, teaching goals, provider behavior, or environment

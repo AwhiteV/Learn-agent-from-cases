@@ -12,16 +12,13 @@ function read(relativePath: string) {
 
 test("chapter 06 page copy uses Chinese learner-facing labels", () => {
   const layoutSource = read("app/layout.tsx");
-  const pageSource = read("app/page.tsx");
   const chatConsoleSource = read("components/chat-console.tsx");
   const providerSwitcherSource = read("components/provider-switcher.tsx");
   const providerInspectorSource = read("components/provider-inspector.tsx");
 
   assert.equal(layoutSource.includes("第六章：远程与多 Provider"), true);
   assert.equal(layoutSource.includes("lang=\"zh-CN\""), true);
-  assert.equal(pageSource.includes("第 06 章"), true);
-  assert.equal(pageSource.includes("支持 Provider 切换的远程 Agent 控制台"), true);
-  assert.equal(chatConsoleSource.includes("聊天控制台"), true);
+  assert.equal(chatConsoleSource.includes("06 · Remote & Multi-Provider"), true);
   assert.equal(chatConsoleSource.includes("当前 Provider"), true);
   assert.equal(chatConsoleSource.includes("通过当前 Provider 发送"), true);
   assert.equal(providerSwitcherSource.includes("Provider 切换器"), true);

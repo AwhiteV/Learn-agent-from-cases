@@ -9,11 +9,15 @@
 ```bash
 cd 06-remote-and-multi-provider
 corepack pnpm install
-cp .env.local.example .env.local
+# 如果仓库根目录还没有 .env.local，先在根目录复制一次
+# cp ../.env.local.example ../.env.local
 corepack pnpm dev
 ```
 
 打开 [http://localhost:3000](http://localhost:3000)。
+
+`06` 章现在默认复用仓库根目录的 `.env.local`，并和 `01-05` 一样使用真实大模型聊天、SSE 流式输出与 session 持续对话。
+当前真实聊天依赖固定在 `@anthropic-ai/claude-agent-sdk@0.2.42`，以兼容仓库里常见的代理模型配置（例如 `minimax/minimax-m2.7`）。
 
 ## 这一章解决什么问题
 
@@ -29,6 +33,8 @@ corepack pnpm dev
 - 服务端始终通过同一个 provider registry 查找 provider
 - 每个 provider 都实现同一个 `AgentProvider` 合约
 - 返回给 UI 的结果始终是同一个 `ProviderResult` 结构
+- 左侧始终保留和前面章节一致的 `session` 历史与恢复入口
+- 右侧使用更宽的控制栏，通过 tab 在 `Provider 切换器` 和 `Provider 检查面板` 之间切换，并支持一键收起
 
 学习者看到的重点不是“系统有多复杂”，而是“什么在变，什么不该变”。
 
@@ -50,7 +56,8 @@ export interface AgentProvider {
   id: string;
   name: string;
   executionMode: "local" | "remote";
-  run(request: ProviderRequest): Promise<ProviderResult>;
+  buildSystemPrompt(request: ProviderRequest): string;
+  buildNotes(request: ProviderRequest): string[];
 }
 ```
 
@@ -83,16 +90,19 @@ export interface AgentProvider {
 
 推荐按这个顺序操作：
 
-1. 保持默认消息不变，先用 `本地 Agent` 发送一次。
+1. 先确认左侧 `历史会话` 还是空白，再保持默认消息不变，用 `本地 Agent` 发送一次。
+   观察什么：发送完成后左侧会生成可恢复的 session，说明 provider 切换这一章也放进了持续对话工作台里。
+
+2. 保持默认消息不变，先用 `本地 Agent` 发送一次。
    观察什么：右侧的 transcript、`当前 Provider`、`执行模式` 和 provider notes 会一起更新，你能先看到“本地 provider 是如何被统一接口消费的”。
 
-2. 切换到 `模拟远程路径`，发送完全相同的消息。
+3. 切换到 `模拟远程路径`，发送完全相同的消息。
    观察什么：返回结构仍然是统一的 `ProviderResult`，但 `executionMode` 会变成 `remote`，provider notes 也会明确告诉你这只是 same-process 的 latency-only simulation。
 
-3. 对照 `Provider 检查面板` 中的 `稳定抽象层` 代码块和 `哪些内容保持不变` 卡片。
+4. 对照 `Provider 检查面板` 中的 `稳定抽象层` 代码块和 `哪些内容保持不变` 卡片。
    观察什么：虽然 provider 在变，但请求体仍然是 `{ providerId, message }`，返回结构仍然是 `ProviderResult`，页面渲染逻辑也没有跟着换一套。
 
-4. 再发一个不同类型的问题，比如 `Summarize how this provider setup would scale from a local tutorial to a hosted product.`
+5. 再发一个不同类型的问题，比如 `Summarize how this provider setup would scale from a local tutorial to a hosted product.`
    观察什么：同一个 UI 仍然通过同一个 `/api/chat` 路由工作，但 provider notes 会帮助你区分“这次变化来自 provider 实现差异”，而不是来自前端分支逻辑。
 
 建议重点观察：
@@ -137,17 +147,23 @@ export interface AgentProvider {
 ## 关键文件
 
 - `app/page.tsx`：章节入口，解释 runnable case 和学习路径
-- `components/chat-console.tsx`：主工作台，组合 provider 切换、请求发送和 transcript
+- `components/chat-console.tsx`：主工作台，保持和前面章节一致的三栏聊天骨架；右侧栏更宽，支持收起，并通过 tab 切换 Provider 切换器与检查面板
+- `components/session-list.tsx`：左侧历史会话与恢复入口
 - `components/learning-assistant.tsx`：页面内抽屉式学习助手
 - `tests/learning-assistant-script.test.ts`：锁定学习助手脚本契约、目标挂载点，以及双模式实现视角 helper
 - `components/provider-switcher.tsx`：切换不同 provider 配置
 - `components/provider-inspector.tsx`：显示当前 provider、执行模式、稳定抽象和 provider notes
+- Provider 切换器与检查面板放在更宽的右侧栏中，支持收起；展开后可通过 tab 在两者之间切换，不会挤压主聊天工作区
 - `app/api/chat/route.ts`：统一接收 `message + providerId` 并分发到选中的 provider
+- `app/api/sessions/route.ts`：返回历史 session 列表
+- `app/api/sessions/[id]/route.ts`：读取单个 session 的消息详情
 - `lib/types.ts`：ProviderRequest / ProviderResult / AgentProvider 等共享类型
 - `lib/providers/base.ts`：provider 基类和共享教学文案拼装逻辑
 - `lib/providers/local-agent.ts`：本地 provider 实现
 - `lib/providers/mock-remote.ts`：remote-style provider 实现
 - `lib/providers/index.ts`：provider registry 与 summary 数据
+- `lib/model-config.ts`：从根目录 `.env.local` 解析默认模型
+- `lib/storage/index.ts`：chapter-local session persistence helpers
 - `lib/learning-assistant-script.ts`：章节学习助手的步骤脚本，包含 `操作引导 / 实现视角` 双模式内容
 - `tests/providers.test.ts`：锁定 provider registry 和执行模式契约的基础测试
 

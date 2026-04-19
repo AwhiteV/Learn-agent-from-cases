@@ -1,5 +1,6 @@
 export interface ProviderRequest {
   message: string;
+  sessionId?: string;
 }
 
 export interface ProviderResult {
@@ -14,7 +15,8 @@ export interface AgentProvider {
   id: string;
   name: string;
   executionMode: "local" | "remote";
-  run(request: ProviderRequest): Promise<ProviderResult>;
+  buildSystemPrompt(request: ProviderRequest): string;
+  buildNotes(request: ProviderRequest): string[];
 }
 
 export interface ProviderSummary {

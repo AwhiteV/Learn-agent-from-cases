@@ -93,7 +93,7 @@ test("learning script defines the memory-and-skills walkthrough contract", async
 
   assert.equal(learningScript.chapterId, "05-memory-and-skills");
   assert.equal(learningScript.chapterTitle, "Memory 与 Skills 学习助手");
-  assert.equal(learningScript.steps.length, 5);
+  assert.equal(learningScript.steps.length, 6);
   assert.equal(typeof learningScript.steps[0].beginner.doThis, "string");
   assert.deepEqual(
     learningScript.steps.map((step) => ({
@@ -103,7 +103,12 @@ test("learning script defines the memory-and-skills walkthrough contract", async
     })),
     [
       {
-        title: "保存一条 memory",
+        title: "查看历史会话",
+        type: "observation",
+        targetId: "session-list",
+      },
+      {
+        title: "观察自动记忆",
         type: "action",
         targetId: "memory-panel",
       },
@@ -129,15 +134,20 @@ test("learning script defines the memory-and-skills walkthrough contract", async
       },
     ],
   );
+
+  const switchSkillStep = learningScript.steps.find(
+    (step) => step.title === "切换当前 skill",
+  );
+
   assert.equal(
-    learningScript.steps[1].advanced?.functions?.some(
+    switchSkillStep?.advanced?.functions?.some(
       (fn) => fn.name === "getSkillPresetById",
     ),
     true,
   );
   assert.equal(
-    learningScript.steps[1].advanced?.functions?.some(
-      (fn) => fn.name === "createSkillSpecificResponse",
+    learningScript.steps.some((step) =>
+      step.advanced?.functions?.some((fn) => fn.name === "extractMemoryFromConversation"),
     ),
     true,
   );
@@ -161,10 +171,14 @@ test("learning target ids stay mounted in the memory-and-skills UI", async () =>
     path.join(projectRoot, "components", "skill-selector.tsx"),
     "utf8",
   );
+  const sessionList = fs.readFileSync(
+    path.join(projectRoot, "components", "session-list.tsx"),
+    "utf8",
+  );
 
   const actualTargets = new Set(
     Array.from(
-      `${chatInterface}\n${memoryPanel}\n${skillSelector}`.matchAll(
+      `${chatInterface}\n${memoryPanel}\n${skillSelector}\n${sessionList}`.matchAll(
         /data-learning-target="([^"]+)"/g,
       ),
       (match) => match[1],
@@ -210,11 +224,6 @@ test("learning assistant drawer exposes the implementation-view smoke labels", (
         file: "lib/skill-presets.ts",
         role: "把 skill id 解析成对应 preset",
       },
-      {
-        name: "createSkillSpecificResponse",
-        file: "lib/chat-engine.ts",
-        role: "根据 selectedSkill.id 生成不同回答模板",
-      },
     ],
     dataFlow: [
       "skill selector",
@@ -233,7 +242,7 @@ test("learning assistant drawer exposes the implementation-view smoke labels", (
   assert.equal(advancedView.behaviorChain.title, "行为链");
   assert.equal(advancedView.whatHappened.title, "发生了什么");
   assert.equal(advancedView.code.files.length, 2);
-  assert.equal(advancedView.code.functions.length, 2);
+  assert.equal(advancedView.code.functions.length, 1);
   assert.equal(
     advancedView.code.functions.some((fn) => fn.name === "getSkillPresetById"),
     true,

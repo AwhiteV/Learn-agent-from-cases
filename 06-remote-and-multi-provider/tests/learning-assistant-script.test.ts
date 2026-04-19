@@ -93,9 +93,14 @@ test("learning script defines the remote-and-multi-provider walkthrough contract
 
   assert.equal(learningScript.chapterId, "06-remote-and-multi-provider");
   assert.equal(learningScript.chapterTitle, "远程与多 Provider 学习助手");
-  assert.equal(learningScript.steps.length, 5);
+  assert.equal(learningScript.steps.length, 6);
   assert.equal(typeof learningScript.steps[0].beginner.doThis, "string");
-  assert.deepEqual(learningScript.steps[2].advanced?.dataFlow, [
+
+  const stableAbstractionStep = learningScript.steps.find(
+    (step) => step.title === "查看稳定抽象层",
+  );
+
+  assert.deepEqual(stableAbstractionStep?.advanced?.dataFlow, [
     "provider switcher",
     "chat console state",
     "/api/chat",
@@ -109,6 +114,11 @@ test("learning script defines the remote-and-multi-provider walkthrough contract
       targetId: step.targetId ?? null,
     })),
     [
+      {
+        title: "查看历史会话",
+        type: "observation",
+        targetId: "session-list",
+      },
       {
         title: "选择一个 provider",
         type: "action",
@@ -136,18 +146,23 @@ test("learning script defines the remote-and-multi-provider walkthrough contract
       },
     ],
   );
+
+  const sendSameRequestStep = learningScript.steps.find(
+    (step) => step.title === "发送同一条请求",
+  );
+
   assert.equal(
-    learningScript.steps[1].advanced?.functions?.some(
+    sendSameRequestStep?.advanced?.functions?.some(
       (fn) => fn.name === "handleSubmit",
     ),
     true,
   );
   assert.equal(
-    learningScript.steps[1].advanced?.functions?.some((fn) => fn.name === "POST"),
+    sendSameRequestStep?.advanced?.functions?.some((fn) => fn.name === "POST"),
     true,
   );
   assert.equal(
-    learningScript.steps[1].advanced?.functions?.some(
+    sendSameRequestStep?.advanced?.functions?.some(
       (fn) => fn.name === "getProviderById",
     ),
     true,
@@ -172,10 +187,14 @@ test("learning target ids stay mounted in the remote-and-multi-provider UI", asy
     path.join(projectRoot, "components", "provider-inspector.tsx"),
     "utf8",
   );
+  const sessionList = fs.readFileSync(
+    path.join(projectRoot, "components", "session-list.tsx"),
+    "utf8",
+  );
 
   const actualTargets = new Set(
     Array.from(
-      `${chatConsole}\n${providerSwitcher}\n${providerInspector}`.matchAll(
+      `${chatConsole}\n${providerSwitcher}\n${providerInspector}\n${sessionList}`.matchAll(
         /data-learning-target="([^"]+)"/g,
       ),
       (match) => match[1],

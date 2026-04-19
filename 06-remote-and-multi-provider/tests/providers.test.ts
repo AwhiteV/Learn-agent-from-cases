@@ -20,20 +20,17 @@ test("provider summaries expose both local and remote modes", () => {
   );
 });
 
-test("local provider returns a unified local result", async () => {
+test("local provider exposes a real-chat system prompt contract", async () => {
   const provider = getProviderById("local-agent");
 
   assert.ok(provider);
 
-  const result = await provider.run({
+  const prompt = provider.buildSystemPrompt({
     message: "Prepare a short release summary for learners.",
   });
 
-  assert.equal(result.providerId, "local-agent");
-  assert.equal(result.providerName, "本地 Agent");
-  assert.equal(result.executionMode, "local");
-  assert.match(result.output, /本地执行已在当前进程内完成/);
-  assert.ok(result.notes.length >= 2);
+  assert.match(prompt, /本地 Agent/);
+  assert.match(prompt, /同一个 Next\.js 进程/);
 });
 
 test("mock remote provider stays honest about being a simulation", async () => {
@@ -41,14 +38,11 @@ test("mock remote provider stays honest about being a simulation", async () => {
 
   assert.ok(provider);
 
-  const result = await provider.run({
+  const prompt = provider.buildSystemPrompt({
     message: "Prepare a short release summary for learners.",
   });
 
-  assert.equal(result.providerId, "mock-remote");
-  assert.equal(result.providerName, "模拟远程路径");
-  assert.equal(result.executionMode, "remote");
-  assert.match(result.output, /仅延迟的远程风格模拟/);
-  assert.match(result.output, /同一个 Next\.js 服务进程/);
-  assert.match(result.notes[0] ?? "", /仅延迟模拟/);
+  assert.match(prompt, /模拟远程路径/);
+  assert.match(prompt, /远程风格/);
+  assert.match(prompt, /同一个 Next\.js 服务进程/);
 });
