@@ -6,6 +6,18 @@ export interface MemoryEntry {
   createdAt: string;
 }
 
+export interface SuggestedMemoryInput {
+  title: string;
+  content: string;
+  category: MemoryEntry["category"];
+}
+
+export interface MemoryDecision {
+  shouldRemember: boolean;
+  reason: string;
+  memory?: SuggestedMemoryInput;
+}
+
 export interface SkillPreset {
   id: string;
   name: string;
@@ -15,14 +27,22 @@ export interface SkillPreset {
 
 export interface ChatRequestBody {
   message: string;
+  sessionId?: string;
   selectedSkillId: string;
-  memoryIds: string[];
 }
 
-export interface ChatResponseBody {
-  response: string;
+export interface PromptPreviewPayload {
   composedPrompt: string;
   memoryContext: string;
   selectedSkill: SkillPreset;
   selectedMemories: MemoryEntry[];
+}
+
+export interface ChatResponseBody extends PromptPreviewPayload {
+  response: string;
+  memoryDecision?: {
+    status: "saved" | "duplicate" | "skipped";
+    reason: string;
+    memory?: MemoryEntry;
+  };
 }

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4ede3;
-  --foreground: #24170c;
+  --background: #ffffff;
+  --foreground: #0f172a;
 }
 
 * {
@@ -16,12 +16,14 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at top left, rgba(245, 158, 11, 0.18), transparent 30%),
-    radial-gradient(circle at top right, rgba(20, 184, 166, 0.14), transparent 28%),
-    linear-gradient(180deg, #fffaf2 0%, #f4ede3 48%, #efe5d8 100%);
+  background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family:
+    "SF Pro Text",
+    "PingFang SC",
+    "Helvetica Neue",
+    "Noto Sans SC",
+    sans-serif;
 }
 
 button,
@@ -31,10 +33,12 @@ select {
   font: inherit;
 }
 
-pre {
-  font-family: var(--font-geist-mono), monospace;
-}
-
-::selection {
-  background: rgba(20, 184, 166, 0.24);
+pre,
+code {
+  font-family:
+    "SFMono-Regular",
+    "JetBrains Mono",
+    "Menlo",
+    "Consolas",
+    monospace;
 }

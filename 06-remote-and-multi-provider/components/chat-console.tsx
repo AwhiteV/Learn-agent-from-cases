@@ -1,10 +1,17 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { GitBranch, PanelRightClose, PanelRightOpen, Send } from "lucide-react";
 
-import { ProviderInspector } from "@/components/provider-inspector";
 import { LearningAssistant } from "@/components/learning-assistant";
+import { ProviderInspector } from "@/components/provider-inspector";
 import { ProviderSwitcher } from "@/components/provider-switcher";
+import { SessionList } from "@/components/session-list";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import type { ChatRequestBody, ChatResponseBody, ProviderSummary } from "@/lib/types";
 
 interface ChatConsoleProps {
@@ -24,75 +31,158 @@ function uniqueId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 }
 
-export function ChatConsole({
-  providers,
-  defaultProviderId,
-}: ChatConsoleProps) {
+function sidebarIconButtonClass(isActive: boolean) {
+  return `flex h-11 w-11 items-center justify-center rounded-2xl border transition ${
+    isActive ? "border-slate-900 bg-slate-900 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+  }`;
+}
+
+function sidebarTabButtonClass(isActive: boolean) {
+  return `rounded-2xl border px-4 py-2.5 text-sm font-medium transition ${
+    isActive ? "border-slate-900 bg-slate-900 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+  }`;
+}
+
+export function ChatConsole({ providers, defaultProviderId }: ChatConsoleProps) {
   const [activeProviderId, setActiveProviderId] = useState(defaultProviderId);
   const [message, setMessage] = useState(
-    "Show how a local and a remote-style provider would process a weekly release summary request.",
+    "请演示本地 Provider 和远程风格 Provider 会如何处理一条每周发布总结请求。",
   );
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [latestResponse, setLatestResponse] = useState<ChatResponseBody | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<"switcher" | "inspector">("switcher");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const activeProvider =
-    providers.find((provider) => provider.id === activeProviderId) ?? providers[0];
+  const activeProvider = useMemo(
+    () => providers.find((provider) => provider.id === activeProviderId) ?? providers[0],
+    [activeProviderId, providers],
+  );
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [transcript]);
+
+  async function loadSession(id: string) {
+    try {
+      const response = await fetch(`/api/sessions/${id}`);
+      const payload = (await response.json()) as { messages?: TranscriptItem[] };
+
+      if (payload.messages) {
+        setTranscript(payload.messages);
+        setSessionId(id);
+      }
+    } catch (error) {
+      console.error("Failed to load session:", error);
+    }
+  }
+
+  function handleNewChat() {
+    setTranscript([]);
+    setSessionId(null);
+    setLatestResponse(null);
+    setErrorMessage(null);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const trimmedMessage = message.trim();
-
-    if (!trimmedMessage || !activeProvider || isSending) {
-      return;
-    }
+    if (!trimmedMessage || !activeProvider || isSending) return;
 
     setErrorMessage(null);
     setIsSending(true);
 
-    const userEntry: TranscriptItem = {
-      id: uniqueId("user"),
-      role: "user",
-      content: trimmedMessage,
-    };
+    const assistantMessageId = uniqueId("assistant");
 
-    setTranscript((currentTranscript) => [...currentTranscript, userEntry]);
+    setTranscript((currentTranscript) => [
+      ...currentTranscript,
+      { id: uniqueId("user"), role: "user", content: trimmedMessage },
+      {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+        providerName: activeProvider.name,
+        executionMode: activeProvider.executionMode,
+      },
+    ]);
 
     const requestBody: ChatRequestBody = {
       providerId: activeProvider.id,
       message: trimmedMessage,
+      sessionId: sessionId ?? undefined,
     };
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
 
-      const data = (await response.json()) as ChatResponseBody | { error: string };
-
-      if (!response.ok || "error" in data) {
-        throw new Error("error" in data ? data.error : "Chat request failed.");
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "聊天请求失败。");
       }
 
-      const assistantEntry: TranscriptItem = {
-        id: uniqueId("assistant"),
-        role: "assistant",
-        content: data.result.output,
-        providerName: data.result.providerName,
-        executionMode: data.result.executionMode,
-      };
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-      setLatestResponse(data);
-      setTranscript((currentTranscript) => [...currentTranscript, assistantEntry]);
+      if (!reader) {
+        throw new Error("No reader available.");
+      }
+
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop() ?? "";
+
+        for (const chunk of chunks) {
+          if (!chunk.startsWith("data: ")) continue;
+
+          const eventData = JSON.parse(chunk.slice(6)) as
+            | { type: "content"; data: string; sessionId: string }
+            | { type: "result"; data: { sessionId: string; response: ChatResponseBody } }
+            | { type: "error"; data: { error: string } };
+
+          if (eventData.type === "content") {
+            setTranscript((currentTranscript) =>
+              currentTranscript.map((entry) =>
+                entry.id === assistantMessageId ? { ...entry, content: entry.content + eventData.data } : entry,
+              ),
+            );
+            setSessionId(eventData.sessionId);
+          }
+
+          if (eventData.type === "result") {
+            setSessionId(eventData.data.sessionId);
+            setLatestResponse(eventData.data.response);
+            setRefreshTrigger((current) => current + 1);
+          }
+
+          if (eventData.type === "error") {
+            throw new Error(eventData.data.error);
+          }
+        }
+      }
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Chat request failed.",
+      const messageText = error instanceof Error ? error.message : "聊天请求失败。";
+      setErrorMessage(messageText);
+      setTranscript((currentTranscript) =>
+        currentTranscript.map((entry) =>
+          entry.id === assistantMessageId ? { ...entry, content: `Error: ${messageText}` } : entry,
+        ),
       );
     } finally {
       setIsSending(false);
@@ -100,175 +190,180 @@ export function ChatConsole({
   }
 
   return (
-    <div className="mt-10 grid gap-6 xl:grid-cols-[0.95fr_1.35fr]">
-      <div className="space-y-6">
-        <ProviderSwitcher
-          activeProviderId={activeProviderId}
-          onSelect={setActiveProviderId}
-          providers={providers}
-        />
-        {activeProvider ? (
-          <ProviderInspector
-            activeProvider={activeProvider}
-            latestResponse={latestResponse}
-          />
-        ) : null}
+    <div className="flex h-screen overflow-hidden bg-white">
+      <LearningAssistant />
+      <SessionList
+        currentSessionId={sessionId}
+        onNewChat={handleNewChat}
+        onSessionSelect={loadSession}
+        refreshTrigger={refreshTrigger}
+      />
+
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="shrink-0 border-b bg-white px-6 py-4">
+          <h1 className="text-2xl font-semibold">06 · Remote & Multi-Provider</h1>
+          <p className="text-sm text-slate-500">当前 Provider：{activeProvider?.name}</p>
+          {sessionId ? <p className="text-sm text-slate-500">Session: {sessionId}</p> : null}
+        </div>
+
+        <ScrollArea className="flex-1 p-6" data-learning-target="transcript-panel">
+          <div className="mx-auto max-w-3xl space-y-4" ref={scrollRef}>
+            {transcript.length === 0 ? (
+              <Card className="p-8 text-center">
+                <CardContent className="px-0 text-slate-500">
+                  通过当前 Provider 发送第一条消息，开始对话。
+                </CardContent>
+              </Card>
+            ) : (
+              transcript.map((entry) => (
+                <div
+                  key={entry.id}
+                  className={`flex ${entry.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <Card
+                    className={`max-w-[80%] p-4 ${
+                      entry.role === "user" ? "bg-slate-900 text-white" : "bg-slate-100"
+                    }`}
+                  >
+                    <CardContent className="px-0">
+                      {entry.providerName ? (
+                        <div className="mb-2 text-xs font-medium text-slate-500">
+                          {entry.providerName} · {entry.executionMode}
+                        </div>
+                      ) : null}
+                      <p className="whitespace-pre-wrap break-words text-sm leading-7">{entry.content}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))
+            )}
+          </div>
+        </ScrollArea>
+
+        <div className="shrink-0 border-t bg-white p-6">
+          <form className="mx-auto max-w-3xl" onSubmit={handleSubmit}>
+            <div className="flex gap-2">
+              <Input
+                data-learning-target="chat-input"
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder="输入消息..."
+                value={message}
+              />
+              <Button disabled={!activeProvider || isSending || message.trim().length === 0} type="submit">
+                <Send className="h-4 w-4" />
+                通过当前 Provider 发送
+              </Button>
+            </div>
+            {errorMessage ? <p className="mt-3 text-sm text-red-600">{errorMessage}</p> : null}
+          </form>
+        </div>
       </div>
 
-      <section className="rounded-[2rem] border border-[var(--border)] bg-[var(--panel-strong)] p-6 shadow-[0_18px_50px_rgba(40,31,18,0.08)]">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-500">
-              Chat Console
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold text-stone-950">
-              Same task, different provider path
-            </h2>
-          </div>
-          {activeProvider ? (
-            <div className="rounded-[1.2rem] border border-[var(--border)] bg-white/80 px-4 py-3 text-sm text-stone-700">
-              <span className="font-semibold text-stone-950">
-                Active provider:
-              </span>{" "}
-              {activeProvider.name} · {activeProvider.executionMode}
+      <aside
+        className={`${isSidebarCollapsed ? "w-16" : "w-[30rem]"} flex h-full shrink-0 flex-col border-l bg-slate-50/60 transition-[width] duration-200`}
+        data-learning-target="file-explorer"
+      >
+        <div className="flex items-start justify-between gap-3 p-4">
+          {isSidebarCollapsed ? (
+            <div className="flex w-full justify-center">
+              <Button
+                aria-label="展开右侧边栏"
+                onClick={() => setIsSidebarCollapsed(false)}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <PanelRightOpen className="h-4 w-4" />
+              </Button>
             </div>
-          ) : null}
+          ) : (
+            <>
+              <div className="min-w-0 space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Workspace Panel
+                </p>
+                <h2 className="text-lg font-semibold">Provider 控制台</h2>
+                <div className="flex items-center gap-2 text-sm leading-6 text-slate-500">
+                  <GitBranch className="h-4 w-4" />
+                  切换 Provider，不改变主聊天布局；在同一套右栏里查看路由差异和稳定抽象层。
+                </div>
+              </div>
+              <Button
+                aria-label="收起右侧边栏"
+                onClick={() => setIsSidebarCollapsed(true)}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <PanelRightClose className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <div className="rounded-[1.5rem] border border-[var(--border)] bg-white/75 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-              Step 1
-            </p>
-            <p className="mt-2 text-sm leading-6 text-stone-700">
-              Pick a provider. That changes execution mode, not the page-level
-              chat contract.
-            </p>
-          </div>
-          <div className="rounded-[1.5rem] border border-[var(--border)] bg-white/75 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-              Step 2
-            </p>
-            <p className="mt-2 text-sm leading-6 text-stone-700">
-              Send the same request body through <code>POST /api/chat</code>.
-            </p>
-          </div>
-          <div className="rounded-[1.5rem] border border-[var(--border)] bg-white/75 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-              Step 3
-            </p>
-            <p className="mt-2 text-sm leading-6 text-stone-700">
-              Compare output, notes, and execution mode while the abstraction
-              layer stays fixed.
-            </p>
-          </div>
-        </div>
-
-        <form className="mt-6" onSubmit={handleSubmit}>
-          <label className="block text-sm font-semibold text-stone-900" htmlFor="message">
-            Task message
-          </label>
-          <textarea
-            className="mt-3 min-h-36 w-full rounded-[1.5rem] border border-[var(--border)] bg-white/80 px-4 py-4 text-base leading-7 text-stone-900 outline-none transition focus:border-stone-900"
-            id="message"
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder="Ask the same task in each provider mode."
-            value={message}
-            data-learning-target="chat-input"
-          />
-
-          <div className="mt-4 rounded-[1.3rem] border border-[var(--border)] bg-stone-950 px-4 py-4 text-sm leading-7 text-stone-100">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">
-              Unified request payload
-            </p>
-            <pre className="mt-2 overflow-x-auto text-xs leading-6">
-{`POST /api/chat
-${JSON.stringify(
-  {
-    providerId: activeProvider?.id ?? "",
-    message: message.trim() || "Your task goes here",
-  },
-  null,
-  2,
-)}`}
-            </pre>
-          </div>
-
-          {errorMessage ? (
-            <div className="mt-4 rounded-[1.3rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {errorMessage}
-            </div>
-          ) : null}
-
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+        <Separator />
+        {isSidebarCollapsed ? (
+          <div className="flex flex-1 flex-col items-center gap-3 px-2 py-4">
             <button
-              className="rounded-full bg-stone-900 px-5 py-3 text-sm font-semibold text-stone-50 transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-400"
-              disabled={!activeProvider || isSending || message.trim().length === 0}
-              type="submit"
-            >
-              {isSending ? "Routing through provider..." : "Send through active provider"}
-            </button>
-            <button
-              className="rounded-full border border-[var(--border)] bg-white/80 px-5 py-3 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-white"
+              aria-label="切换到 Provider 切换器"
+              className={sidebarIconButtonClass(sidebarTab === "switcher")}
               onClick={() => {
-                setTranscript([]);
-                setLatestResponse(null);
-                setErrorMessage(null);
+                setSidebarTab("switcher");
+                setIsSidebarCollapsed(false);
               }}
               type="button"
             >
-              Clear transcript
+              <GitBranch className="h-4 w-4" />
+            </button>
+            <button
+              aria-label="切换到 Provider 检查面板"
+              className={sidebarIconButtonClass(sidebarTab === "inspector")}
+              onClick={() => {
+                setSidebarTab("inspector");
+                setIsSidebarCollapsed(false);
+              }}
+              type="button"
+            >
+              <PanelRightOpen className="h-4 w-4" />
             </button>
           </div>
-        </form>
-
-        <div className="mt-6 space-y-4" data-learning-target="transcript-panel">
-          {transcript.length === 0 ? (
-            <div className="rounded-[1.6rem] border border-dashed border-[var(--border)] bg-white/55 px-5 py-6 text-sm leading-7 text-stone-600">
-              No transcript yet. Send one task with the local provider, switch to
-              the mock remote provider, and send the exact same task again.
-            </div>
-          ) : (
-            transcript.map((entry) => (
-              <article
-                key={entry.id}
-                className={`rounded-[1.6rem] border px-5 py-5 shadow-[0_10px_24px_rgba(40,31,18,0.05)] ${
-                  entry.role === "assistant"
-                    ? "border-[var(--border)] bg-white/85"
-                    : "border-stone-900 bg-stone-900 text-stone-50"
-                }`}
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2 p-4">
+              <button
+                className={sidebarTabButtonClass(sidebarTab === "switcher")}
+                onClick={() => setSidebarTab("switcher")}
+                type="button"
               >
-                <div className="flex flex-wrap items-center gap-3">
-                  <p
-                    className={`text-xs font-semibold uppercase tracking-[0.22em] ${
-                      entry.role === "assistant"
-                        ? "text-stone-500"
-                        : "text-stone-300"
-                    }`}
-                  >
-                    {entry.role === "assistant" ? "Provider response" : "Learner task"}
-                  </p>
-                  {entry.providerName ? (
-                    <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">
-                      {entry.providerName} · {entry.executionMode}
-                    </span>
+                Provider 切换器
+              </button>
+              <button
+                className={sidebarTabButtonClass(sidebarTab === "inspector")}
+                onClick={() => setSidebarTab("inspector")}
+                type="button"
+              >
+                Provider 检查面板
+              </button>
+            </div>
+            <Separator />
+            <ScrollArea className="flex-1">
+              <div className="space-y-4 p-4">
+                <div className={sidebarTab === "switcher" ? "block" : "hidden"}>
+                  <ProviderSwitcher
+                    activeProviderId={activeProviderId}
+                    onSelect={setActiveProviderId}
+                    providers={providers}
+                  />
+                </div>
+                <div className={sidebarTab === "inspector" ? "block" : "hidden"}>
+                  {activeProvider ? (
+                    <ProviderInspector activeProvider={activeProvider} latestResponse={latestResponse} />
                   ) : null}
                 </div>
-                <pre
-                  className={`mt-3 whitespace-pre-wrap text-sm leading-7 ${
-                    entry.role === "assistant"
-                      ? "text-stone-700"
-                      : "text-stone-100"
-                  }`}
-                >
-                  {entry.content}
-                </pre>
-              </article>
-            ))
-          )}
-        </div>
-      </section>
-      <LearningAssistant />
+              </div>
+            </ScrollArea>
+          </>
+        )}
+      </aside>
     </div>
   );
 }

@@ -25,7 +25,7 @@ const selectedMemories: MemoryEntry[] = [
 test("memory context only includes selected memories in a readable block", () => {
   const memoryContext = buildMemoryContext(selectedMemories);
 
-  assert.match(memoryContext, /Memory Context/);
+  assert.match(memoryContext, /Memory 上下文/);
   assert.match(memoryContext, /Exam goal/);
   assert.match(memoryContext, /Current project/);
 });
@@ -43,8 +43,8 @@ test("teaching reply changes shape based on the selected skill preset", () => {
   });
 
   assert.notEqual(teacherReply.response, reviewerReply.response);
-  assert.match(teacherReply.composedPrompt, /teacher/i);
-  assert.match(reviewerReply.composedPrompt, /reviewer/i);
-  assert.match(teacherReply.response, /step/i);
-  assert.match(reviewerReply.response, /risk|assumption|check/i);
+  assert.match(teacherReply.composedPrompt, /耐心的老师/);
+  assert.match(reviewerReply.composedPrompt, /谨慎的审阅者/);
+  assert.match(teacherReply.response, /教学模式回答|小练习/);
+  assert.match(reviewerReply.response, /审阅模式回答|风险|假设|验证/);
 });

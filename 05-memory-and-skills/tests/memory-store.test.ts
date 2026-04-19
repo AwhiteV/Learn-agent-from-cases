@@ -56,3 +56,31 @@ test("memory store deletes a persisted entry by id", async () => {
     await rm(tempRoot, { recursive: true, force: true });
   }
 });
+
+test("memory store avoids creating exact duplicate memories", async () => {
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "memory-store-"));
+  const dataDir = path.join(tempRoot, ".data");
+
+  try {
+    const store = createMemoryStore(dataDir);
+    const first = await store.createIfNotExists({
+      title: "偏好具体例子",
+      content: "解释时多用具体例子。",
+      category: "preference",
+    });
+    const second = await store.createIfNotExists({
+      title: "偏好具体例子",
+      content: "解释时多用具体例子。",
+      category: "preference",
+    });
+
+    const allEntries = await store.list();
+
+    assert.equal(first.created, true);
+    assert.equal(second.created, false);
+    assert.equal(allEntries.length, 1);
+    assert.equal(allEntries[0]?.id, first.memory.id);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});

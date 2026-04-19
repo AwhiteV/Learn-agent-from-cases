@@ -145,8 +145,10 @@ pnpm lint     # Run ESLint
 - `app/globals.css`: Global Tailwind styles
 - `next.config.ts`: Next.js configuration
 - `tsconfig.json`: TypeScript configuration with strict mode
-- `.env.local.example`: 仓库级共享环境变量模板，默认供 `01` 到 `04` 章节复用
+- `.env.local.example`: 仓库级共享环境变量模板，默认供 `01` 到 `06` 章节复用
 - `学习助手.png`: 根 README 中用于展示章节内学习助手抽屉的项目级截图
+- `操作引导.png`: 根 README 中用于展示学习助手 `操作引导` 模式的项目级截图
+- `实现视角.png`: 根 README 中用于展示学习助手 `实现视角` 模式的项目级截图
 
 ## Common Patterns
 
@@ -161,7 +163,7 @@ When adding a new tutorial (e.g., 02-xxx):
 ### Working with Environment Variables
 
 All .env* files are gitignored. Each tutorial project should:
-- Reuse the repository-root `.env.local` as the default setup for runnable chapters `01` to `04`
+- Reuse the repository-root `.env.local` as the default setup for runnable chapters `01` to `06`
 - Use chapter-local `.env.local` only when a chapter explicitly supports per-chapter overrides
 - Document required environment variables and override behavior in its README.md
 

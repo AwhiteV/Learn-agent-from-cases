@@ -60,6 +60,11 @@ Run these checks in every chapter before chapter-specific testing:
 2. Switch the active skill preset and confirm the guidance matches the skill selector.
 3. Send the same question twice while changing only memory or skill and confirm the transcript guidance remains correct.
 4. Confirm the prompt preview and injected memory block explanation matches the visible debug cards.
+5. Open the drawer in its default `操作引导` mode and confirm the 05 chapter copy starts from the expected teaching step.
+6. Switch to `实现视角` and confirm the current step number stays unchanged while the content changes to implementation-oriented guidance.
+7. Confirm `行为链 / 发生了什么` is visible by default in the implementation view.
+8. Expand `看代码 / 数据流` and confirm the panel reveals the code and data-flow explanation without changing the active step.
+9. Switch to a different step and confirm any expanded implementation sections reset to the collapsed state.
 
 ### 06 Remote And Multi Provider
 
@@ -67,6 +72,11 @@ Run these checks in every chapter before chapter-specific testing:
 2. Confirm the learning assistant points to the provider switcher, input area, transcript, and provider inspector in a sensible order.
 3. Check that `stable abstraction`, `provider notes`, and `execution mode` explanations match the on-page wording.
 4. Confirm switching providers does not reset or break the learning assistant flow.
+5. Open the drawer in its default `操作引导` mode and confirm the 06 chapter copy starts from the expected teaching step.
+6. Switch to `实现视角` and confirm the current step number stays unchanged while the content changes to implementation-oriented guidance.
+7. Confirm `行为链 / 发生了什么` is visible by default in the implementation view.
+8. Expand `看代码 / 数据流` and confirm the panel reveals the code and data-flow explanation without changing the active step.
+9. Switch to a different step and confirm any expanded implementation sections reset to the collapsed state.
 
 ## Interaction And Usability Checks
 
@@ -90,3 +100,4 @@ Run these checks in every chapter before chapter-specific testing:
 - The learning assistant does not block the primary chapter workflow.
 - `04-agent-teams` preserves hierarchy in historical team views.
 - `05-memory-and-skills` and `06-remote-and-multi-provider` keep their guide copy aligned with the real page behavior.
+- `05-memory-and-skills` and `06-remote-and-multi-provider` both expose the extra `实现视角` mode, and its collapsible sections behave consistently across step changes.

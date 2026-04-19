@@ -9,11 +9,15 @@
 ```bash
 cd 06-remote-and-multi-provider
 corepack pnpm install
-cp .env.local.example .env.local
+# 如果仓库根目录还没有 .env.local，先在根目录复制一次
+# cp ../.env.local.example ../.env.local
 corepack pnpm dev
 ```
 
 打开 [http://localhost:3000](http://localhost:3000)。
+
+`06` 章现在默认复用仓库根目录的 `.env.local`，并和 `01-05` 一样使用真实大模型聊天、SSE 流式输出与 session 持续对话。
+当前真实聊天依赖固定在 `@anthropic-ai/claude-agent-sdk@0.2.42`，以兼容仓库里常见的代理模型配置（例如 `minimax/minimax-m2.7`）。
 
 ## 这一章解决什么问题
 
@@ -23,16 +27,23 @@ corepack pnpm dev
 - remote agent 是不是一定要先搭一整套远程基础设施
 - local invocation 和 remote invocation 到底哪里不同，哪里又应该保持一样
 
-这一章用一个可运行的“remote agent console with provider switching”来回答这些问题：
+这一章用一个可运行的“支持 Provider 切换的远程 Agent 控制台”来回答这些问题：
 
 - 前端始终通过同一个 `POST /api/chat` 接口发请求
 - 服务端始终通过同一个 provider registry 查找 provider
 - 每个 provider 都实现同一个 `AgentProvider` 合约
 - 返回给 UI 的结果始终是同一个 `ProviderResult` 结构
+- 左侧始终保留和前面章节一致的 `session` 历史与恢复入口
+- 右侧使用更宽的控制栏，通过 tab 在 `Provider 切换器` 和 `Provider 检查面板` 之间切换，并支持一键收起
 
 学习者看到的重点不是“系统有多复杂”，而是“什么在变，什么不该变”。
 
-为了降低第一次体验这章时的理解门槛，页面右下角也提供了一个“学习助手”浮层入口，会引导你先切 provider、再发送同一请求、再去观察 stable abstraction 和 transcript 差异。
+为了降低第一次体验这章时的理解门槛，页面右下角也提供了一个“学习助手”抽屉入口，而且现在和 05 章一样支持双模式：
+
+- `操作引导`：适合第一次跑 case 的学习者，按步骤带你先切 provider、再发同一请求、再观察稳定抽象层和 transcript 差异。
+- `实现视角`：适合已经跑通过一次 case 的学习者，重点回看 Provider 切换器、chat route、provider registry、provider inspector 之间是怎样串成一条协作链的。
+
+这两个模式讲的是同一条 provider 切换路径，只是一个先帮你把实验做出来，另一个再帮你把实现读明白。
 
 ## remote agent 与 provider abstraction 的核心概念
 
@@ -45,7 +56,8 @@ export interface AgentProvider {
   id: string;
   name: string;
   executionMode: "local" | "remote";
-  run(request: ProviderRequest): Promise<ProviderResult>;
+  buildSystemPrompt(request: ProviderRequest): string;
+  buildNotes(request: ProviderRequest): string[];
 }
 ```
 
@@ -78,16 +90,19 @@ export interface AgentProvider {
 
 推荐按这个顺序操作：
 
-1. 保持默认消息不变，先用 `Local Agent` 发送一次。
-   观察什么：右侧的 transcript、`Active provider`、`Execution mode` 和 provider notes 会一起更新，你能先看到“本地 provider 是如何被统一接口消费的”。
+1. 先确认左侧 `历史会话` 还是空白，再保持默认消息不变，用 `本地 Agent` 发送一次。
+   观察什么：发送完成后左侧会生成可恢复的 session，说明 provider 切换这一章也放进了持续对话工作台里。
 
-2. 切换到 `Mock Remote Path`，发送完全相同的消息。
+2. 保持默认消息不变，先用 `本地 Agent` 发送一次。
+   观察什么：右侧的 transcript、`当前 Provider`、`执行模式` 和 provider notes 会一起更新，你能先看到“本地 provider 是如何被统一接口消费的”。
+
+3. 切换到 `模拟远程路径`，发送完全相同的消息。
    观察什么：返回结构仍然是统一的 `ProviderResult`，但 `executionMode` 会变成 `remote`，provider notes 也会明确告诉你这只是 same-process 的 latency-only simulation。
 
-3. 对照 `Provider Inspector` 中的 `Stable abstraction` 代码块和 `What stays constant` 卡片。
+4. 对照 `Provider 检查面板` 中的 `稳定抽象层` 代码块和 `哪些内容保持不变` 卡片。
    观察什么：虽然 provider 在变，但请求体仍然是 `{ providerId, message }`，返回结构仍然是 `ProviderResult`，页面渲染逻辑也没有跟着换一套。
 
-4. 再发一个不同类型的问题，比如 `Summarize how this provider setup would scale from a local tutorial to a hosted product.`
+5. 再发一个不同类型的问题，比如 `Summarize how this provider setup would scale from a local tutorial to a hosted product.`
    观察什么：同一个 UI 仍然通过同一个 `/api/chat` 路由工作，但 provider notes 会帮助你区分“这次变化来自 provider 实现差异”，而不是来自前端分支逻辑。
 
 建议重点观察：
@@ -100,6 +115,15 @@ export interface AgentProvider {
 - 页面渲染逻辑仍然是一套统一界面
 
 这就是 provider abstraction 最重要的教学结果：调用路径可以替换，产品层的交互面不必跟着碎裂。
+
+如果你打开学习助手的 `实现视角`，建议按下面这条链路回看一次：
+
+1. `provider switcher` 只负责改当前 `providerId`。
+2. `chat console` 在提交时把 `providerId + message` 送到 `POST /api/chat`。
+3. `chat route` 通过 `provider registry` 找到对应 provider，并返回统一的 `ProviderResult`。
+4. `provider inspector` 和 transcript 再基于这份统一结果，把 execution mode、notes 和输出差异渲染出来。
+
+理解这条链之后，这一章最关键的设计判断就会很清楚：provider 可以换，协作链可以扩展，但前台学习界面和请求契约不需要因此裂成多套。
 
 ## 这一章对应的 Agent SDK 概念
 
@@ -123,17 +147,24 @@ export interface AgentProvider {
 ## 关键文件
 
 - `app/page.tsx`：章节入口，解释 runnable case 和学习路径
-- `components/chat-console.tsx`：主工作台，组合 provider 切换、请求发送和 transcript
+- `components/chat-console.tsx`：主工作台，保持和前面章节一致的三栏聊天骨架；右侧栏更宽，支持收起，并通过 tab 切换 Provider 切换器与检查面板
+- `components/session-list.tsx`：左侧历史会话与恢复入口
 - `components/learning-assistant.tsx`：页面内抽屉式学习助手
+- `tests/learning-assistant-script.test.ts`：锁定学习助手脚本契约、目标挂载点，以及双模式实现视角 helper
 - `components/provider-switcher.tsx`：切换不同 provider 配置
 - `components/provider-inspector.tsx`：显示当前 provider、执行模式、稳定抽象和 provider notes
+- Provider 切换器与检查面板放在更宽的右侧栏中，支持收起；展开后可通过 tab 在两者之间切换，不会挤压主聊天工作区
 - `app/api/chat/route.ts`：统一接收 `message + providerId` 并分发到选中的 provider
+- `app/api/sessions/route.ts`：返回历史 session 列表
+- `app/api/sessions/[id]/route.ts`：读取单个 session 的消息详情
 - `lib/types.ts`：ProviderRequest / ProviderResult / AgentProvider 等共享类型
 - `lib/providers/base.ts`：provider 基类和共享教学文案拼装逻辑
 - `lib/providers/local-agent.ts`：本地 provider 实现
 - `lib/providers/mock-remote.ts`：remote-style provider 实现
 - `lib/providers/index.ts`：provider registry 与 summary 数据
-- `lib/learning-assistant-script.ts`：章节学习助手的步骤脚本
+- `lib/model-config.ts`：从根目录 `.env.local` 解析默认模型
+- `lib/storage/index.ts`：chapter-local session persistence helpers
+- `lib/learning-assistant-script.ts`：章节学习助手的步骤脚本，包含 `操作引导 / 实现视角` 双模式内容
 - `tests/providers.test.ts`：锁定 provider registry 和执行模式契约的基础测试
 
 ## 你学完这一章后应该掌握什么

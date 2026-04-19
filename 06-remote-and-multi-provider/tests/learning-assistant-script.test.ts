@@ -4,10 +4,31 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import {
+  buildAdvancedViewModel,
+  getCollapsedAdvancedSections,
+} from "../components/learning-assistant";
+
 interface LearningStepContract {
   title: string;
   type: "action" | "observation" | "comparison" | "term" | "checkpoint";
   targetId?: string;
+  beginner: {
+    doThis: string;
+    watchHere: string;
+    notice: string;
+    whyItMatters: string;
+    termNote?: string;
+  };
+  advanced?: {
+    trigger: string;
+    visibleEffect: string;
+    internals: string;
+    files: Array<{ path: string; role: string }>;
+    functions?: Array<{ name: string; file: string; role: string }>;
+    dataFlow: string[];
+    relationships?: string[];
+  };
 }
 
 interface LearningScriptContract {
@@ -19,6 +40,39 @@ interface LearningScriptContract {
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const scriptPath = path.join(projectRoot, "lib", "learning-assistant-script.ts");
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function assertAdvancedArtifacts(step: LearningStepContract) {
+  if (!step.advanced) {
+    return;
+  }
+
+  for (const file of step.advanced.files) {
+    assert.equal(
+      fs.existsSync(path.join(projectRoot, file.path)),
+      true,
+      `Expected advanced file "${file.path}" to exist in 06`,
+    );
+  }
+
+  for (const fn of step.advanced.functions ?? []) {
+    const source = fs.readFileSync(path.join(projectRoot, fn.file), "utf8");
+    const escapedName = escapeRegExp(fn.name);
+    const declarationPattern = new RegExp(
+      String.raw`(?:export\s+)?(?:async\s+)?function\s+${escapedName}\b|(?:public|protected|private)?\s*${escapedName}\s*\(|const\s+${escapedName}\s*=`,
+      "m",
+    );
+
+    assert.equal(
+      declarationPattern.test(source),
+      true,
+      `Expected function "${fn.name}" to be declared in ${fn.file}`,
+    );
+  }
+}
 
 async function loadLearningScript(): Promise<LearningScriptContract> {
   assert.equal(
@@ -39,7 +93,20 @@ test("learning script defines the remote-and-multi-provider walkthrough contract
 
   assert.equal(learningScript.chapterId, "06-remote-and-multi-provider");
   assert.equal(learningScript.chapterTitle, "远程与多 Provider 学习助手");
-  assert.equal(learningScript.steps.length, 5);
+  assert.equal(learningScript.steps.length, 6);
+  assert.equal(typeof learningScript.steps[0].beginner.doThis, "string");
+
+  const stableAbstractionStep = learningScript.steps.find(
+    (step) => step.title === "查看稳定抽象层",
+  );
+
+  assert.deepEqual(stableAbstractionStep?.advanced?.dataFlow, [
+    "provider switcher",
+    "chat console state",
+    "/api/chat",
+    "provider registry",
+    "provider inspector",
+  ]);
   assert.deepEqual(
     learningScript.steps.map((step) => ({
       title: step.title,
@@ -47,6 +114,11 @@ test("learning script defines the remote-and-multi-provider walkthrough contract
       targetId: step.targetId ?? null,
     })),
     [
+      {
+        title: "查看历史会话",
+        type: "observation",
+        targetId: "session-list",
+      },
       {
         title: "选择一个 provider",
         type: "action",
@@ -74,6 +146,31 @@ test("learning script defines the remote-and-multi-provider walkthrough contract
       },
     ],
   );
+
+  const sendSameRequestStep = learningScript.steps.find(
+    (step) => step.title === "发送同一条请求",
+  );
+
+  assert.equal(
+    sendSameRequestStep?.advanced?.functions?.some(
+      (fn) => fn.name === "handleSubmit",
+    ),
+    true,
+  );
+  assert.equal(
+    sendSameRequestStep?.advanced?.functions?.some((fn) => fn.name === "POST"),
+    true,
+  );
+  assert.equal(
+    sendSameRequestStep?.advanced?.functions?.some(
+      (fn) => fn.name === "getProviderById",
+    ),
+    true,
+  );
+
+  for (const step of learningScript.steps) {
+    assertAdvancedArtifacts(step);
+  }
 });
 
 test("learning target ids stay mounted in the remote-and-multi-provider UI", async () => {
@@ -90,10 +187,14 @@ test("learning target ids stay mounted in the remote-and-multi-provider UI", asy
     path.join(projectRoot, "components", "provider-inspector.tsx"),
     "utf8",
   );
+  const sessionList = fs.readFileSync(
+    path.join(projectRoot, "components", "session-list.tsx"),
+    "utf8",
+  );
 
   const actualTargets = new Set(
     Array.from(
-      `${chatConsole}\n${providerSwitcher}\n${providerInspector}`.matchAll(
+      `${chatConsole}\n${providerSwitcher}\n${providerInspector}\n${sessionList}`.matchAll(
         /data-learning-target="([^"]+)"/g,
       ),
       (match) => match[1],
@@ -109,4 +210,70 @@ test("learning target ids stay mounted in the remote-and-multi-provider UI", asy
       `Expected target "${targetId}" to exist in the mounted 06 UI`,
     );
   }
+});
+
+test("learning assistant drawer exposes the implementation-view helpers", () => {
+  const drawerSource = fs.readFileSync(
+    path.join(projectRoot, "components", "learning-assistant.tsx"),
+    "utf8",
+  );
+
+  assert.equal(drawerSource.includes("操作引导"), true);
+  assert.equal(drawerSource.includes("实现视角"), true);
+  assert.equal(drawerSource.includes("行为链"), true);
+  assert.equal(drawerSource.includes("发生了什么"), true);
+  assert.equal(drawerSource.includes("看代码"), true);
+  assert.equal(drawerSource.includes("数据流"), true);
+
+  const advancedView = buildAdvancedViewModel({
+    trigger: "你切换 provider 后，用同一条 message 再次提交。",
+    visibleEffect:
+      "provider inspector、execution mode 和 transcript 都会更新，但同一个 chat console 仍然复用。",
+    internals:
+      "前端先把 activeProviderId 保存在 chat console state，submit 时再把 providerId 交给 /api/chat，由 provider registry 查出具体 provider，并把统一结果交回 inspector。",
+    files: [
+      { path: "components/provider-switcher.tsx", role: "切换当前 provider" },
+      { path: "components/chat-console.tsx", role: "发起统一 chat 请求" },
+      { path: "lib/providers/index.ts", role: "提供 provider registry" },
+    ],
+    functions: [
+      {
+        name: "handleSubmit",
+        file: "components/chat-console.tsx",
+        role: "把 providerId 和 message 组装成 chat 请求",
+      },
+      {
+        name: "getProviderById",
+        file: "lib/providers/index.ts",
+        role: "根据 providerId 找到 provider adapter",
+      },
+    ],
+    dataFlow: [
+      "provider switcher",
+      "chat console state",
+      "/api/chat",
+      "provider registry",
+      "provider inspector",
+    ],
+  });
+
+  assert.deepEqual(getCollapsedAdvancedSections(), {
+    code: false,
+    flow: false,
+  });
+  assert.equal(advancedView.behaviorChain.title, "行为链");
+  assert.equal(advancedView.whatHappened.title, "发生了什么");
+  assert.equal(advancedView.code.files.length, 3);
+  assert.equal(advancedView.code.functions.length, 2);
+  assert.equal(
+    advancedView.code.functions.some((fn) => fn.name === "getProviderById"),
+    true,
+  );
+  assert.deepEqual(advancedView.dataFlow, [
+    "provider switcher",
+    "chat console state",
+    "/api/chat",
+    "provider registry",
+    "provider inspector",
+  ]);
 });

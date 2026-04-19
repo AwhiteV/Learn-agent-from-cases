@@ -2,9 +2,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
-import type { MemoryEntry } from "@/lib/types";
+import type { MemoryEntry, SuggestedMemoryInput } from "@/lib/types";
 
-type MemoryInput = Omit<MemoryEntry, "id" | "createdAt">;
+type MemoryInput = SuggestedMemoryInput;
 
 function createStoragePath(dataDirectory: string) {
   return path.join(dataDirectory, "memory.json");
@@ -54,6 +54,35 @@ export function createMemoryStore(dataDirectory = path.join(process.cwd(), ".dat
       await writeEntries([createdEntry, ...existingEntries]);
 
       return createdEntry;
+    },
+    async createIfNotExists(input: MemoryInput) {
+      const existingEntries = await readEntries();
+      const existingMatch = existingEntries.find(
+        (entry) =>
+          entry.category === input.category &&
+          entry.title.trim() === input.title.trim() &&
+          entry.content.trim() === input.content.trim(),
+      );
+
+      if (existingMatch) {
+        return {
+          created: false,
+          memory: existingMatch,
+        };
+      }
+
+      const createdEntry: MemoryEntry = {
+        ...input,
+        id: randomUUID(),
+        createdAt: new Date().toISOString(),
+      };
+
+      await writeEntries([createdEntry, ...existingEntries]);
+
+      return {
+        created: true,
+        memory: createdEntry,
+      };
     },
     async delete(memoryId: string) {
       const existingEntries = await readEntries();

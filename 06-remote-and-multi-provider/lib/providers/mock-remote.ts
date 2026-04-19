@@ -11,48 +11,35 @@ function resolveDelay() {
   return rawValue;
 }
 
-function wait(delayMs: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, delayMs);
-  });
-}
-
 export class MockRemoteProvider extends BaseProvider {
   constructor() {
-    super("mock-remote", "Mock Remote Path", "remote");
+    super("mock-remote", "模拟远程路径", "remote");
   }
 
-  async run(request: ProviderRequest) {
+  buildSystemPrompt(request: ProviderRequest) {
     const message = this.readMessage(request);
     const checklist = this.buildSharedChecklist(message);
-    const delayMs = resolveDelay();
 
-    await wait(delayMs);
-
-    const output = [
-      "Remote-style execution completed as a latency-only remote-style simulation.",
+    return [
+      "你当前运行在“模拟远程路径” provider 中。",
+      "你正在模拟第 06 章中的远程风格 provider 路径。",
+      "这不是实际远程 worker，而是同一个 Next.js 服务进程里的远程风格教学抽象。",
+      "请在回答里保持中文，并点出远程风格边界如何改变体验，但不要假装真的部署到了远端。",
+      "你仍然要先完成用户任务，再自然体现 provider 视角差异。",
       "",
-      `Task: ${message}`,
-      "",
-      "What this teaches:",
-      "1. You can model a remote-style provider without leaving the same Next.js server process.",
-      "2. Added latency changes the feel of execution, but not the app-level contract.",
-      "3. The UI still receives the same ProviderResult payload as the local mode.",
-      "",
-      "Simulated remote-style flow:",
-      "1. Build ProviderRequest data.",
-      "2. Route by providerId.",
-      "3. Pause to mimic a remote round trip inside the same Next.js server process.",
-      "4. Return the unified result envelope.",
-      "",
-      "Shared abstraction reminders:",
+      "共享抽象层提醒：",
       ...checklist.map((item) => `- ${item}`),
     ].join("\n");
+  }
 
-    return this.createResult(output, [
-      `Latency-only simulation: ${delayMs}ms delay inside the same process.`,
-      "This chapter does not hand work to a real remote worker or external service.",
-      "Remote-style providers can still stay swappable when they honor the same contract.",
-    ]);
+  buildNotes(request: ProviderRequest) {
+    const message = this.readMessage(request);
+    const delayMs = resolveDelay();
+
+    return [
+      `仅延迟模拟：在同一个 Next.js 服务进程里额外等待 ${delayMs}ms。`,
+      `当前远程风格 provider 正在处理任务：${message}`,
+      "这里不会把任务真正交给远程 worker；重点是保持同一份契约下的可替换执行边界。",
+    ];
   }
 }
